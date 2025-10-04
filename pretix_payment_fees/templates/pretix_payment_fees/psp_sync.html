@@ -1,0 +1,187 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+{% load static %}
+
+{% block title %}{% trans "PSP fee synchronization" %}{% endblock %}
+
+{% block content %}
+    <h1>{% trans "PSP fee synchronization" %}</h1>
+
+    {% if not has_config %}
+        <div class="alert alert-warning">
+            <strong>{% trans "Missing configuration" %}</strong><br>
+            {% trans "You must first configure your PSP API keys." %}
+            <a href="{% url 'plugins:pretix_export_frais:settings' organizer=organizer.slug %}" class="btn btn-sm btn-default">
+                {% trans "Configure" %}
+            </a>
+        </div>
+    {% else %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "PSP configuration status" %}</h3>
+            </div>
+            <div class="panel-body">
+                <dl class="dl-horizontal">
+                    <dt>{% trans "Mollie" %}</dt>
+                    <dd>
+                        {% if mollie_enabled %}
+                            <span class="label label-success">{% trans "Enabled" %}</span>
+                        {% else %}
+                            <span class="label label-default">{% trans "Disabled" %}</span>
+                        {% endif %}
+                    </dd>
+                    <dt>{% trans "SumUp" %}</dt>
+                    <dd>
+                        {% if sumup_enabled %}
+                            <span class="label label-success">{% trans "Enabled" %}</span>
+                        {% else %}
+                            <span class="label label-default">{% trans "Disabled" %}</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        {% if auto_sync_form %}
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-clock-o"></i> {% trans "Automatic synchronization" %}
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <p class="text-muted">
+                        {% trans "Automatic synchronization retrieves fees for new payments at regular intervals." %}
+                        <strong>{% trans "Only unsynchronized payments are processed" %}</strong>, {% trans "which drastically reduces API calls" %}.
+                    </p>
+
+                    {% bootstrap_field auto_sync_form.auto_sync_enabled layout="horizontal" %}
+                    {% bootstrap_field auto_sync_form.auto_sync_interval layout="horizontal" %}
+
+                    {% if psp_config.last_auto_sync %}
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">{% trans "Last synchronization" %}</label>
+                            <div class="col-md-9">
+                                <p class="form-control-static">
+                                    {{ psp_config.last_auto_sync|date:"d/m/Y H:i" }}
+                                    <small class="text-muted">({{ psp_config.last_auto_sync|timesince }} {% trans "ago" %})</small>
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label class="col-md-3 control-label"></label>
+                        <div class="col-md-9">
+                            <p class="help-block">
+                                <small><i class="fa fa-info-circle"></i>
+                                    {% trans "Runs via Pretix periodic task." %}
+                                    {% trans "Only unsynchronized payments from the last 30 days are processed (impact: ~5-10 API req/day)." %}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-offset-3 col-md-9">
+                            <button type="submit" name="save_auto_sync" class="btn btn-primary">
+                                <i class="fa fa-save"></i> {% trans "Save" %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "Payments pending synchronization" %}</h3>
+            </div>
+            <div class="panel-body">
+                {% if pending_stats.total > 0 %}
+                    <p><strong>{% trans "Total:" %}</strong> {{ pending_stats.total }} {% trans "payments" %}</p>
+                    {% if pending_stats.by_provider %}
+                        <p><strong>{% trans "By provider:" %}</strong></p>
+                        <ul>
+                            {% for provider, count in pending_stats.by_provider.items %}
+                                <li>{{ provider }}: {{ count }} {% trans "payments" %}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    <p class="text-success">
+                        <i class="fa fa-check"></i>
+                        {% trans "All payments are synchronized" %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" class="form-horizontal">
+            {% csrf_token %}
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{% trans "Start synchronization" %}</h3>
+                </div>
+                <div class="panel-body">
+                    {% bootstrap_form form layout='horizontal' %}
+
+                    <div class="alert alert-warning">
+                        <strong><i class="fa fa-info-circle"></i> {% trans "Important:" %}</strong>
+                        <ul>
+                            <li>{% trans "If no date is provided, ALL unsynchronized payments will be processed (may take time)." %}</li>
+                            <li>{% trans "To limit synchronization to a specific period, use the date fields." %}</li>
+                            <li>{% trans "Synchronization may take several minutes for a large number of payments." %}</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>{% trans "Note:" %}</strong>
+                        <ul>
+                            <li>{% trans "Synchronization may take several seconds." %}</li>
+                            <li>{% trans "Use 'dry-run' mode to simulate without modifying the database." %}</li>
+                            <li>{% trans "Already synchronized payments are ignored unless 'Force' is enabled." %}</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel-footer text-right">
+                    <button type="submit" class="btn btn-primary btn-save btn-lg" id="sync-button">
+                        <i class="fa fa-refresh"></i>
+                        {% trans "Synchronize" %}
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "Command line" %}</h3>
+            </div>
+            <div class="panel-body">
+                <p>{% trans "You can also use the following Django command:" %}</p>
+                <pre>python manage.py sync_psp_fees --organizer={{ organizer.slug }} --days=30</pre>
+                <p>{% trans "Available options:" %}</p>
+                <ul>
+                    <li><code>--organizer</code> : {% trans "Organizer slug (required)" %}</li>
+                    <li><code>--event</code> : {% trans "Event slug (optional)" %}</li>
+                    <li><code>--from</code> : {% trans "Date de début (YYYY-MM-DD)" %}</li>
+                    <li><code>--to</code> : {% trans "Date de fin (YYYY-MM-DD)" %}</li>
+                    <li><code>--days</code> : {% trans "Number of days back" %}</li>
+                    <li><code>--force</code> : {% trans "Resynchronize even if already done" %}</li>
+                    <li><code>--dry-run</code> : {% trans "Simulate without modifying" %}</li>
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block custom_footer %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'pretix_export_frais/psp_sync.js' %}"></script>
+{% endblock %}
+

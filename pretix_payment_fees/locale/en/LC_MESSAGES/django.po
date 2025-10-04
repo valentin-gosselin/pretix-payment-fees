@@ -1,0 +1,820 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2024 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the pretix-payment-fees package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: pretix-payment-fees 1.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-03 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: pretix_payment_fees/admin_views.py
+msgid "... et {count} autres erreurs"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Access Token"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Accounting Report"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Accéder à la synchronisation"
+msgstr "Access synchronization"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Actions de maintenance"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Actions disponibles pour gérer le cache et les données PSP."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Activé"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Alternative à date_from/date_to (ex: 7 pour la dernière semaine)"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Amount"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Aucune configuration PSP trouvée. Veuillez d'abord configurer vos clés API."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Aucune transaction en cache pour le moment."
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Bancontact"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "By Payment Provider"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Carte de crédit"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Cette page affiche des informations de diagnostic sur le plugin d'export comptable avec frais PSP."
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Client ID et Client Secret Mollie Connect requis. Veuillez les configurer dans les paramètres."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Clé API Mollie"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Comment"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Completion date"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Configuration OAuth:"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Configuration PSP"
+msgstr "PSP Configuration"
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Configuration PSP introuvable"
+msgstr ""
+
+#: pretix_payment_fees/admin_views.py
+msgid "Configuration PSP introuvable."
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Configuration PSP introuvable. Veuillez d'abord configurer vos clés API."
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Configuration introuvable"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Configuration manquante"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Configurer"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Configurer maintenant"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Configurez les clés API de vos prestataires de paiement (Mollie, SumUp) pour permettre la synchronisation automatique des frais bancaires."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Connecter avec Mollie"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Connecté"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Connexion réussie à Mollie Connect ! Les frais PSP réels sont maintenant disponibles."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Copiez Client ID et Secret ci-dessus, puis enregistrez"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Creation date"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Créez une app OAuth sur"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Créez une app sur"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Date"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Date de début"
+msgstr "Start date"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Date de début (YYYY-MM-DD)"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Date de fin"
+msgstr "End date"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Date de fin (YYYY-MM-DD)"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Date range (payment date)"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Date range (start of transaction)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Dernière heure"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Dernière synchronisation"
+msgstr "Last synchronization"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Diagnostic Export Frais PSP"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Diagnostic PSP"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Disponible sur"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Durée cache"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Durée en secondes (60-86400)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Déconnecter"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Déconnexion réussie de Mollie Connect"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Désactivé"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Enregistrer"
+msgstr "Save"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Enregistrer la configuration"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Erreur d'autorisation Mollie: {error}"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Erreur lors de la connexion à Mollie: {error}"
+msgstr ""
+
+#: pretix_payment_fees/admin_views.py
+msgid "Erreur lors de la synchronisation: {error}"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Erreur lors du traitement de la réponse OAuth"
+msgstr ""
+
+#: pretix_payment_fees/admin_views.py
+msgid "Erreur paiement {payment_id}: {error}"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Erreurs récentes"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Event"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Event slug"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Expiration:"
+msgstr ""
+
+#: pretix_payment_fees/__init__.py
+msgid "Export Comptable avec Frais PSP"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Fees"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Fonctionnalités à venir dans une prochaine version."
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Forcer la resynchronisation"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Fournisseur frais"
+msgstr ""
+
+#: pretix_payment_fees/signals.py
+#: pretix_payment_fees/signals.py
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Frais Mollie"
+msgstr ""
+
+#: pretix_payment_fees/signals.py
+msgid "Frais Mollie (Bancontact)"
+msgstr ""
+
+#: pretix_payment_fees/signals.py
+msgid "Frais Mollie (Carte de crédit)"
+msgstr ""
+
+#: pretix_payment_fees/signals.py
+msgid "Frais Mollie (iDEAL)"
+msgstr ""
+
+#: pretix_payment_fees/signals.py
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Frais SumUp"
+msgstr ""
+
+#: pretix_payment_fees/signals.py
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Frais bancaires"
+msgstr "Bank fees"
+
+#: pretix_payment_fees/forms.py
+msgid "Fréquence de la synchronisation automatique"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Gift cards"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Gross"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Gross Amount"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Important :"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "La clé API Mollie doit commencer par 'live_' ou 'test_'."
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "La clé API Mollie est requise si Mollie est activé."
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "La clé API SumUp est requise si SumUp est activé."
+msgstr ""
+
+#: pretix_payment_fees/views.py
+msgid "La configuration PSP a été enregistrée avec succès."
+msgstr ""
+
+#: pretix_payment_fees/admin_views.py
+msgid "La configuration de synchronisation automatique a été enregistrée."
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "La date de début doit être antérieure à la date de fin"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "La durée de cache doit être entre 60 et 86400 secondes."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "La synchronisation automatique récupère les frais des nouveaux paiements à intervalles réguliers."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "La synchronisation peut prendre plusieurs minutes pour un grand nombre de paiements."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "La synchronisation peut prendre plusieurs secondes."
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Laisser vide pour synchroniser TOUS les paiements depuis le début"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Laisser vide pour synchroniser jusqu'à aujourd'hui"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Laisser vide pour synchroniser tous les événements de l'organisateur"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Lancer une synchronisation"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Le Client ID Mollie Connect doit commencer par 'app_'."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Le cache réduit les appels API. Recommandé : 3600s (1h)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Les frais PSP réels sont synchronisés automatiquement"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Les paiements déjà synchronisés sont ignorés sauf si 'Forcer' est activé."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Ligne de commande"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Matching ID"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Message"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Mode Test"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Mode simulation (dry-run)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Mollie"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Mollie Connect (OAuth)"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Mollie Connect n'est pas connecté"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Ne peut pas être utilisé avec date_from/date_to"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Net"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Net Amount"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "No orders found for this period."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Nombre"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Nombre de jours en arrière"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Note :"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Note that using this will exclude any non-confirmed payments or non-completed refunds."
+msgstr ""
+
+#: pretix_payment_fees/admin_views.py
+msgid "Nous traitons votre demande… La synchronisation peut prendre plusieurs minutes pour un grand nombre de paiements."
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Open items"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Optionnel - Pour récupérer les frais PSP réels"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Options avancées"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Options disponibles :"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Order"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Orders"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Organizer"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "PSP"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "PSP Fees"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Paiements en attente de synchronisation"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Par fournisseur"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Par provider :"
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Paramètres OAuth manquants"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Payment ID"
+msgstr ""
+
+#: pretix_payment_fees/apps.py
+msgid "Payment Provider Fees Tracker"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Payment details"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Payment method"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Payment states"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Payments"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Pending payments at {datetime}"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Period: "
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Plus de 24h"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Pour limiter la synchronisation à une période spécifique, utilisez les champs de date."
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Provider"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Rafraîchir le cache complet"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Refund states"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Refunds"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Resynchroniser même les paiements déjà synchronisés"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Resynchroniser même si déjà fait"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "S'exécute via la tâche périodique Pretix."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Sans OAuth, seuls les frais estimés seront calculés (moins précis)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Seuls les paiements des 30 derniers jours non synchronisés sont traités (impact : ~5-10 req API/jour)."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Seuls les paiements non encore synchronisés sont traités"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Si aucune date n'est fournie, TOUS les paiements non synchronisés seront traités (peut prendre du temps)."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Simuler sans modifier"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Simuler sans modifier la base de données"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Slug de l'organisateur (obligatoire)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Slug de l'événement (optionnel)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Statistiques du cache"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Status"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Status code"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "SumUp"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Synchronisation automatique"
+msgstr "Automatic synchronization"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Synchronisation des frais"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Synchronisation des frais PSP"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Synchronise automatiquement les nouveaux paiements"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Synchroniser"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Synchronisez les frais bancaires de vos paiements Mollie et SumUp avec les données réelles de vos PSP."
+msgstr ""
+
+#: pretix_payment_fees/oauth_views.py
+msgid "Token CSRF invalide. Veuillez réessayer."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Total :"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Total Brut"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Total Frais"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Total Gross Amount"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Total Net Amount"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Total PSP Fees"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Total fees"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Total frais bancaires"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Total net perçu"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "Totals"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Tous les paiements sont synchronisés"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Tous les événements"
+msgstr ""
+
+#: pretix_payment_fees/exporters/accounting_report_psp.py
+msgid "Transactions"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Transactions en cache"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Type"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "Type frais"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "URL callback:"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Utilisez le mode 'dry-run' pour simuler sans modifier la base de données."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "Vider le cache ancien (>7j)"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Vous devez d'abord configurer vos clés API PSP."
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "Vous pouvez également utiliser la commande Django suivante :"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "ago"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "from"
+msgstr ""
+
+#: pretix_payment_fees/exporters/payment_list_psp.py
+msgid "iDEAL"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "paiements"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "pour obtenir un Access Token"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/diagnostic.html
+msgid "secondes"
+msgstr ""
+
+#: pretix_payment_fees/renderers/accounting_pdf_renderer.py
+msgid "until"
+msgstr ""
+
+#: pretix_payment_fees/templates/pretix_payment_fees/psp_sync.html
+msgid "État de la configuration PSP"
+msgstr ""
+
+#: pretix_payment_fees/forms.py
+msgid "Événement"
+msgstr "Event"
+
+#: pretix_payment_fees/templates/pretix_payment_fees/settings.html
+msgid "Êtes-vous sûr de vouloir déconnecter Mollie Connect ?"
+msgstr ""
+

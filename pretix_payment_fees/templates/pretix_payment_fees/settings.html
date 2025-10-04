@@ -1,0 +1,136 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+
+{% block title %}{% trans "Bank fees" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Bank fees" %}</h1>
+
+<p class="text-muted">
+    {% trans "Configure your payment providers' API keys (Mollie, SumUp) to enable automatic bank fees synchronization." %}
+</p>
+
+<div class="panel panel-info">
+    <div class="panel-body">
+        <h4 style="margin-top: 0;"><i class="fa fa-sync"></i> {% trans "Fee synchronization" %}</h4>
+        <p class="text-muted">
+            {% trans "Synchronize bank fees from your Mollie and SumUp payments with real PSP data." %}
+        </p>
+        <a href="{% url 'plugins:pretix_payment_fees:psp_sync' organizer=request.organizer.slug %}" class="btn btn-default">
+            {% trans "Access synchronization" %} <i class="fa fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<hr>
+
+<form method="post" class="form-horizontal">
+    {% csrf_token %}
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <i class="fa fa-credit-card"></i> {% trans "Mollie" %}
+            </h3>
+        </div>
+        <div class="panel-body">
+            {% bootstrap_field form.mollie_enabled layout="horizontal" %}
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" for="id_mollie_api_key">{% trans "Mollie API Key" %}</label>
+                <div class="col-md-9">
+                    <input type="password" name="mollie_api_key" value="{{ form.mollie_api_key.value|default:'' }}" placeholder="live_... or test_..." autocomplete="off" maxlength="255" class="form-control" id="id_mollie_api_key">
+                    <p class="help-block"><small>{% trans "Available on" %} <a href="https://www.mollie.com/dashboard/developers/api-keys" target="_blank">Mollie Dashboard</a></small></p>
+                </div>
+            </div>
+
+            {% bootstrap_field form.mollie_test_mode layout="horizontal" %}
+
+            <hr>
+
+            <h4><i class="fa fa-key"></i> {% trans "Mollie Connect (OAuth)" %} <small class="text-muted">{% trans "Optional - To retrieve real PSP fees" %}</small></h4>
+
+            {% if psp_config.mollie_oauth_connected %}
+                <div class="alert alert-success">
+                    <i class="fa fa-check-circle"></i>
+                    <strong>{% trans "Connected" %}</strong> - {% trans "Real PSP fees are synchronized automatically" %}
+                    {% if psp_config.mollie_token_expires_at %}
+                        <br><small>{% trans "Expiration:" %} {{ psp_config.mollie_token_expires_at|date:"d/m/Y H:i" }}</small>
+                    {% endif %}
+                </div>
+
+                <form method="post" action="{% url 'plugins:pretix_payment_fees:mollie_disconnect' organizer=request.organizer.slug %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{% trans "Are you sure you want to disconnect Mollie Connect?" %}');">
+                        <i class="fa fa-times"></i> {% trans "Disconnect" %}
+                    </button>
+                </form>
+            {% else %}
+                <p class="text-muted"><small>{% trans "Without OAuth, only estimated fees will be calculated (less accurate)" %}</small></p>
+
+                {% bootstrap_field form.mollie_client_id layout="horizontal" %}
+                {% bootstrap_field form.mollie_client_secret layout="horizontal" %}
+
+                {% if psp_config.mollie_client_id and psp_config.mollie_client_secret %}
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <a href="{% url 'plugins:pretix_payment_fees:mollie_connect' organizer=request.organizer.slug %}" class="btn btn-success">
+                                <i class="fa fa-plug"></i> {% trans "Connect with Mollie" %}
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info" style="margin-top: 10px;">
+                        <strong>{% trans "OAuth configuration:" %}</strong>
+                        <ol style="margin-bottom: 0;">
+                            <li>{% trans "Create an app on" %} <a href="https://www.mollie.com/dashboard/developers/applications" target="_blank">Mollie Dashboard</a></li>
+                            <li>{% trans "Callback URL:" %} <code>{{ request.scheme }}://{{ request.get_host }}/_export_frais/mollie/callback/</code></li>
+                            <li>{% trans "Copy Client ID and Secret above, then save" %}</li>
+                        </ol>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <i class="fa fa-credit-card"></i> {% trans "SumUp" %}
+            </h3>
+        </div>
+        <div class="panel-body">
+            {% bootstrap_field form.sumup_enabled layout="horizontal" %}
+
+            <div class="form-group">
+                <label class="col-md-3 control-label" for="id_sumup_api_key">{% trans "Access Token" %}</label>
+                <div class="col-md-9">
+                    <input type="password" name="sumup_api_key" value="{{ form.sumup_api_key.value|default:'' }}" placeholder="sup_sk_..." autocomplete="off" maxlength="255" class="form-control" id="id_sumup_api_key">
+                    <p class="help-block"><small>{% trans "Create an OAuth app on" %} <a href="https://developer.sumup.com/" target="_blank">SumUp Developer</a> {% trans "to obtain an Access Token" %}</small></p>
+                </div>
+            </div>
+
+            {% bootstrap_field form.sumup_test_mode layout="horizontal" %}
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <i class="fa fa-cog"></i> {% trans "Advanced options" %}
+            </h3>
+        </div>
+        <div class="panel-body">
+            {% bootstrap_field form.cache_duration layout="horizontal" %}
+            <p class="text-muted"><small>{% trans "Cache reduces API calls. Recommended: 3600s (1h)" %}</small></p>
+        </div>
+    </div>
+
+    <div class="form-group submit-group">
+        <button type="submit" class="btn btn-primary btn-save btn-lg">
+            <i class="fa fa-save"></i> {% trans "Save configuration" %}
+        </button>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,980 @@
+# Spanish translations for pretix-payment-fees
+# Copyright (C) 2024
+# This file is distributed under the same license as the pretix-payment-fees package.
+msgid ""
+msgstr ""
+"Project-Id-Version: pretix-payment-fees 1.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 12:00+0000\n"
+"PO-Revision-Date: 2025-10-04 15:14+0000\n"
+"Last-Translator: Claude AI\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "... and {count} other errors"
+msgstr "... y {count} errores más"
+
+msgid "Access Token"
+msgstr "Token de acceso"
+
+msgid "Access synchronization"
+msgstr "Acceder a la sincronización"
+
+msgid "Access token expiration date"
+msgstr "Fecha de caducidad del token de acceso"
+
+msgid "Accounting Export with PSP Fees"
+msgstr "Exportación Contable con Comisiones PSP"
+
+msgid "Accounting export with PSP fees"
+msgstr "Exportación contable con comisiones PSP"
+
+msgid "Alternative to date_from/date_to (e.g.: 7 for last week)"
+msgstr "Alternativa a date_from/date_to (ej.: 7 para la última semana)"
+
+msgid "Automatic synchronization"
+msgstr "Sincronización automática"
+
+msgid "Automatic synchronization configuration has been saved."
+msgstr "La configuración de sincronización automática ha sido guardada."
+
+msgid "Automatic synchronization frequency"
+msgstr "Frecuencia de sincronización automática"
+
+msgid "Automatic synchronization retrieves fees for new payments at regular intervals."
+msgstr "La sincronización automática recupera comisiones de nuevos pagos a intervalos regulares."
+
+msgid "Automatically synchronize new payments"
+msgstr "Sincronizar automáticamente nuevos pagos"
+
+msgid "Available actions to manage cache and PSP data."
+msgstr "Acciones disponibles para gestionar caché y datos PSP."
+
+msgid "Back"
+msgstr "Volver"
+
+msgid "Bank fees"
+msgstr "Comisiones bancarias"
+
+msgid "By provider"
+msgstr "Por proveedor"
+
+msgid "Cache duration (seconds)"
+msgstr "Duración de caché (segundos)"
+
+msgid "Cache duration in seconds (60-86400)"
+msgstr "Duración de caché en segundos (60-86400)"
+
+msgid "Cache duration must be between 60 and 86400 seconds."
+msgstr "La duración de caché debe estar entre 60 y 86400 segundos."
+
+msgid "Cached Transactions"
+msgstr "Transacciones en Caché"
+
+msgid "Clear cache"
+msgstr "Vaciar caché"
+
+msgid "Configuration not found"
+msgstr "Configuración no encontrada"
+
+msgid "Configuration not found for organizer {slug}"
+msgstr "Configuración no encontrada para organizador {slug}"
+
+msgid "Configure"
+msgstr "Configurar"
+
+msgid "Configure now"
+msgstr "Configurar ahora"
+
+msgid "Configure your payment providers' API keys (Mollie, SumUp) to enable automatic bank fees synchronization."
+msgstr "Configure las claves API de sus proveedores de pago (Mollie, SumUp) para habilitar la sincronización automática de comisiones bancarias."
+
+msgid "Connect with Mollie"
+msgstr "Conectar con Mollie"
+
+msgid "Copy Client ID and Secret above, then save"
+msgstr "Copie Client ID y Secret arriba, luego guarde"
+
+msgid "Create an app on"
+msgstr "Cree una app en"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Date and time of last automatic synchronization"
+msgstr "Fecha y hora de la última sincronización automática"
+
+msgid "Diagnostic Information"
+msgstr "Información de Diagnóstico"
+
+msgid "Disconnect"
+msgstr "Desconectar"
+
+msgid "Disconnected"
+msgstr "Desconectado"
+
+msgid "Enable Mollie"
+msgstr "Activar Mollie"
+
+msgid "Enable Mollie integration to retrieve fees"
+msgstr "Activar integración Mollie para recuperar comisiones"
+
+msgid "Enable PSP fees automatic synchronization"
+msgstr "Activar sincronización automática de comisiones PSP"
+
+msgid "Enable SumUp"
+msgstr "Activar SumUp"
+
+msgid "Enable SumUp integration to retrieve fees"
+msgstr "Activar integración SumUp para recuperar comisiones"
+
+msgid "Enabled"
+msgstr "Activado"
+
+msgid "End date"
+msgstr "Fecha de fin"
+
+msgid "Error connecting to Mollie: {error}"
+msgstr "Error al conectar con Mollie: {error}"
+
+msgid "Error during synchronization"
+msgstr "Error durante la sincronización"
+
+msgid "Error during synchronization: {error}"
+msgstr "Error durante la sincronización: {error}"
+
+msgid "Error processing OAuth response"
+msgstr "Error al procesar respuesta OAuth"
+
+msgid "Event"
+msgstr "Evento"
+
+msgid "Every 6 hours"
+msgstr "Cada 6 horas"
+
+msgid "Every hour"
+msgstr "Cada hora"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "Fees"
+msgstr "Comisiones"
+
+msgid "Force resynchronization"
+msgstr "Forzar resincronización"
+
+msgid "Last automatic synchronization"
+msgstr "Última sincronización automática"
+
+msgid "Last synchronization"
+msgstr "Última sincronización"
+
+msgid "Leave empty to synchronize ALL payments from the beginning"
+msgstr "Dejar vacío para sincronizar TODOS los pagos desde el inicio"
+
+msgid "Leave empty to synchronize all organizer events"
+msgstr "Dejar vacío para sincronizar todos los eventos del organizador"
+
+msgid "Leave empty to synchronize until today"
+msgstr "Dejar vacío para sincronizar hasta hoy"
+
+msgid "Maintenance actions"
+msgstr "Acciones de mantenimiento"
+
+msgid "Manual fees synchronization"
+msgstr "Sincronización manual de comisiones"
+
+msgid "Missing configuration"
+msgstr "Configuración faltante"
+
+msgid "Mollie API Key"
+msgstr "Clave API Mollie"
+
+msgid "Mollie API key (starts with 'live_' or 'test_')"
+msgstr "Clave API Mollie (comienza con 'live_' o 'test_')"
+
+msgid "Mollie API key is required if Mollie is enabled."
+msgstr "La clave API Mollie es requerida si Mollie está activado."
+
+msgid "Mollie API key must start with 'live_' or 'test_'."
+msgstr "La clave API Mollie debe comenzar con 'live_' o 'test_'."
+
+msgid "Mollie Connect Client ID"
+msgstr "Client ID de Mollie Connect"
+
+msgid "Mollie Connect Client ID and Secret required. Please configure them in settings."
+msgstr "Client ID y Secret de Mollie Connect requeridos. Por favor, configúrelos en ajustes."
+
+msgid "Mollie Connect Client ID must start with 'app_'."
+msgstr "El Client ID de Mollie Connect debe comenzar con 'app_'."
+
+msgid "Mollie Connect Client Secret"
+msgstr "Client Secret de Mollie Connect"
+
+msgid "Mollie Connect app Client ID (starts with 'app_')"
+msgstr "Client ID de app Mollie Connect (comienza con 'app_')"
+
+msgid "Mollie Connect app Client Secret"
+msgstr "Client Secret de app Mollie Connect"
+
+msgid "Mollie OAuth is connected"
+msgstr "Mollie OAuth está conectado"
+
+msgid "Mollie OAuth2 access token"
+msgstr "Token de acceso OAuth2 Mollie"
+
+msgid "Mollie OAuth2 refresh token"
+msgstr "Token de actualización OAuth2 Mollie"
+
+msgid "Mollie Status"
+msgstr "Estado de Mollie"
+
+msgid "Mollie authorization error: {error}"
+msgstr "Error de autorización Mollie: {error}"
+
+msgid "No"
+msgstr "No"
+
+msgid "No PSP configuration found. Please configure your API keys first."
+msgstr "No se encontró configuración PSP. Por favor, configure primero sus claves API."
+
+msgid "No cached transactions at the moment."
+msgstr "No hay transacciones en caché en este momento."
+
+msgid "No payments found"
+msgstr "No se encontraron pagos"
+
+msgid "No payments found for the selected period"
+msgstr "No se encontraron pagos para el período seleccionado"
+
+msgid "No payments to synchronize"
+msgstr "No hay pagos para sincronizar"
+
+msgid "Not configured"
+msgstr "No configurado"
+
+msgid "Number of days back"
+msgstr "Número de días atrás"
+
+msgid "OAuth configuration:"
+msgstr "Configuración OAuth:"
+
+msgid "Once a day"
+msgstr "Una vez al día"
+
+msgid "Only unsynchronized payments are processed"
+msgstr "Solo se procesan pagos no sincronizados"
+
+msgid "Only unsynchronized payments from the last 30 days are processed (impact: ~5-10 API req/day)."
+msgstr "Solo se procesan pagos no sincronizados de los últimos 30 días (impacto: ~5-10 req API/día)."
+
+msgid "PSP Configuration"
+msgstr "Configuración PSP"
+
+msgid "PSP Synchronization"
+msgstr "Sincronización PSP"
+
+msgid "PSP Synchronization - Bank fees"
+msgstr "Sincronización PSP - Comisiones bancarias"
+
+msgid "PSP configuration has been saved successfully."
+msgstr "La configuración PSP se ha guardado exitosamente."
+
+msgid "PSP configuration not found"
+msgstr "Configuración PSP no encontrada"
+
+msgid "PSP configuration not found."
+msgstr "Configuración PSP no encontrada."
+
+msgid "PSP configuration not found. Please configure your API keys first."
+msgstr "Configuración PSP no encontrada. Por favor, configure primero sus claves API."
+
+msgid "Payment Fees - Bank fees"
+msgstr "Comisiones de Pago - Comisiones bancarias"
+
+msgid "Payment error {payment_id}: {error}"
+msgstr "Error de pago {payment_id}: {error}"
+
+msgid "Payment list with PSP fees"
+msgstr "Lista de pagos con comisiones PSP"
+
+msgid "Payments"
+msgstr "Pagos"
+
+msgid "Payments pending synchronization"
+msgstr "Pagos pendientes de sincronización"
+
+msgid "Plugin Diagnostics"
+msgstr "Diagnóstico del Plugin"
+
+msgid "Plugin operational"
+msgstr "Plugin operativo"
+
+msgid "Provider"
+msgstr "Proveedor"
+
+msgid "Refresh Token"
+msgstr "Token de Actualización"
+
+msgid "Resynchronize even already synchronized payments"
+msgstr "Resincronizar incluso pagos ya sincronizados"
+
+msgid "Runs via Pretix periodic task."
+msgstr "Se ejecuta mediante tarea periódica de Pretix."
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Simulate without modifying the database"
+msgstr "Simular sin modificar la base de datos"
+
+msgid "Simulation mode"
+msgstr "Modo simulación"
+
+msgid "Simulation mode (dry-run)"
+msgstr "Modo simulación (dry-run)"
+
+msgid "Simulation: {synced}/{total} payments would be synchronized"
+msgstr "Simulación: {synced}/{total} pagos serían sincronizados"
+
+msgid "Start date"
+msgstr "Fecha de inicio"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Successfully connected to Mollie Connect! Real PSP fees are now available."
+msgstr "¡Conectado exitosamente a Mollie Connect! Las comisiones PSP reales están ahora disponibles."
+
+msgid "Successfully disconnected from Mollie Connect"
+msgstr "Desconectado exitosamente de Mollie Connect"
+
+msgid "SumUp API Key"
+msgstr "Clave API SumUp"
+
+msgid "SumUp API key is required if SumUp is enabled."
+msgstr "La clave API SumUp es requerida si SumUp está activado."
+
+msgid "SumUp Status"
+msgstr "Estado de SumUp"
+
+msgid "Synchronization"
+msgstr "Sincronización"
+
+msgid "Synchronization frequency"
+msgstr "Frecuencia de sincronización"
+
+msgid "Synchronization successful"
+msgstr "Sincronización exitosa"
+
+msgid "Synchronize"
+msgstr "Sincronizar"
+
+msgid "Synchronize fees"
+msgstr "Sincronizar comisiones"
+
+msgid "Synchronize payment provider fees"
+msgstr "Sincronizar comisiones de proveedores de pago"
+
+msgid "This page displays diagnostic information about the accounting export plugin with PSP fees."
+msgstr "Esta página muestra información de diagnóstico sobre el plugin de exportación contable con comisiones PSP."
+
+msgid "Token expiration"
+msgstr "Caducidad del token"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Transaction ID"
+msgstr "ID de Transacción"
+
+msgid "Transaction cache retention duration (default: 3600)"
+msgstr "Duración de retención de caché de transacciones (predeterminado: 3600)"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "View details"
+msgstr "Ver detalles"
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "ago"
+msgstr "hace"
+
+msgid "payments"
+msgstr "pagos"
+
+msgid "{synced}/{total} payments synchronized, {skipped} skipped, {failed} failed. Total fees: {fees} EUR"
+msgstr "{synced}/{total} pagos sincronizados, {skipped} omitidos, {failed} fallidos. Comisiones totales: {fees} EUR"
+
+msgid "Activer Mollie"
+msgstr "Activar Mollie"
+
+msgid "Activer l'intégration Mollie pour récupérer les frais"
+msgstr "Activar integración Mollie para recuperar comisiones"
+
+msgid "Clé API Mollie"
+msgstr "Clave API Mollie"
+
+msgid "Clé API Mollie (live_ ou test_)"
+msgstr "Clave API Mollie (live_ o test_)"
+
+msgid "Mode test Mollie"
+msgstr "Modo test Mollie"
+
+msgid "Si activé, utilise les API de test Mollie"
+msgstr "Si está activado, usa las API de test de Mollie"
+
+msgid "Client ID Mollie Connect"
+msgstr "Client ID Mollie Connect"
+
+msgid "Client ID de l'app Mollie Connect (app_...)"
+msgstr "Client ID de la app Mollie Connect (app_...)"
+
+msgid "Client Secret Mollie Connect"
+msgstr "Client Secret Mollie Connect"
+
+msgid "Client Secret de l'app Mollie Connect"
+msgstr "Client Secret de la app Mollie Connect"
+
+msgid "Access Token Mollie"
+msgstr "Token de Acceso Mollie"
+
+msgid "Token d'accès OAuth2 Mollie"
+msgstr "Token de acceso OAuth2 Mollie"
+
+msgid "Refresh Token Mollie"
+msgstr "Token de Actualización Mollie"
+
+msgid "Token de rafraîchissement OAuth2 Mollie"
+msgstr "Token de actualización OAuth2 Mollie"
+
+msgid "Date d'expiration du token d'accès"
+msgstr "Fecha de caducidad del token de acceso"
+
+msgid "Activer SumUp"
+msgstr "Activar SumUp"
+
+msgid "Activer l'intégration SumUp pour récupérer les frais"
+msgstr "Activar integración SumUp para recuperar comisiones"
+
+msgid "Clé API SumUp"
+msgstr "Clave API SumUp"
+
+msgid "Durée du cache (secondes)"
+msgstr "Duración de caché (segundos)"
+
+msgid "Durée de conservation du cache des transactions (défaut: 3600)"
+msgstr "Duración de retención de caché de transacciones (predeterminado: 3600)"
+
+msgid "Utiliser les settlement rates"
+msgstr "Usar tasas de liquidación"
+
+msgid "Utiliser les taux réels des settlements pour calculer les frais"
+msgstr "Usar tasas reales de liquidación para calcular comisiones"
+
+msgid "Settlement rates cache duration"
+msgstr "Duración de caché de tasas de liquidación"
+
+msgid "Durée de conservation du cache des settlement rates en secondes"
+msgstr "Duración de retención de caché de tasas de liquidación en segundos"
+
+msgid "Synchronisation automatique"
+msgstr "Sincronización automática"
+
+msgid "Activer la synchronisation automatique des frais PSP"
+msgstr "Activar sincronización automática de comisiones PSP"
+
+msgid "Fréquence de synchronisation"
+msgstr "Frecuencia de sincronización"
+
+msgid "Fréquence de la synchronisation automatique"
+msgstr "Frecuencia de sincronización automática"
+
+msgid "Dernière synchronisation automatique"
+msgstr "Última sincronización automática"
+
+msgid "Date et heure de la dernière synchronisation automatique"
+msgstr "Fecha y hora de la última sincronización automática"
+
+msgid "Toutes les heures"
+msgstr "Cada hora"
+
+msgid "Toutes les 6 heures"
+msgstr "Cada 6 horas"
+
+msgid "Une fois par jour"
+msgstr "Una vez al día"
+
+msgid "La date de début doit être antérieure à la date de fin"
+msgstr "La fecha de inicio debe ser anterior a la fecha de fin"
+
+msgid "Ne peut pas être utilisé avec date_from/date_to"
+msgstr "No se puede usar con date_from/date_to"
+
+msgid "Tous les événements"
+msgstr "Todos los eventos"
+
+msgid "Synchronisation des frais"
+msgstr "Sincronización de comisiones"
+
+msgid "Synchronisez les frais bancaires de vos paiements Mollie et SumUp avec les données réelles de vos PSP."
+msgstr "Sincronice las comisiones bancarias de sus pagos Mollie y SumUp con los datos reales de sus PSP."
+
+msgid "Disponible sur"
+msgstr "Disponible en"
+
+msgid "Optionnel - Pour récupérer les frais PSP réels"
+msgstr "Opcional - Para recuperar comisiones PSP reales"
+
+msgid "Les frais PSP réels sont synchronisés automatiquement"
+msgstr "Las comisiones PSP reales se sincronizan automáticamente"
+
+msgid "Expiration:"
+msgstr "Caducidad:"
+
+msgid "Êtes-vous sûr de vouloir déconnecter Mollie Connect ?"
+msgstr "¿Está seguro de que desea desconectar Mollie Connect?"
+
+msgid "Sans OAuth, seuls les frais estimés seront calculés (moins précis)"
+msgstr "Sin OAuth, solo se calcularán comisiones estimadas (menos preciso)"
+
+msgid "URL callback:"
+msgstr "URL callback:"
+
+msgid "pour obtenir un Access Token"
+msgstr "para obtener un Token de Acceso"
+
+msgid "Options avancées"
+msgstr "Opciones avanzadas"
+
+msgid "Le cache réduit les appels API. Recommandé : 3600s (1h)"
+msgstr "La caché reduce las llamadas API. Recomendado: 3600s (1h)"
+
+msgid "Enregistrer la configuration"
+msgstr "Guardar configuración"
+
+msgid "Synchronisation des frais PSP"
+msgstr "Sincronización de comisiones PSP"
+
+msgid "Vous devez d'abord configurer vos clés API PSP."
+msgstr "Debe configurar primero sus claves API PSP."
+
+msgid "État de la configuration PSP"
+msgstr "Estado de configuración PSP"
+
+msgid "Désactivé"
+msgstr "Desactivado"
+
+msgid "ce qui réduit drastiquement les appels API."
+msgstr "lo que reduce drásticamente las llamadas API."
+
+msgid "Total :"
+msgstr "Total:"
+
+msgid "Par provider :"
+msgstr "Por proveedor:"
+
+msgid "Tous les paiements sont synchronisés"
+msgstr "Todos los pagos están sincronizados"
+
+msgid "Lancer une synchronisation"
+msgstr "Iniciar sincronización"
+
+msgid "Important :"
+msgstr "Importante:"
+
+msgid "Note :"
+msgstr "Nota:"
+
+msgid "Ligne de commande"
+msgstr "Línea de comandos"
+
+msgid "Vous pouvez également utiliser la commande Django suivante :"
+msgstr "También puede usar el siguiente comando Django:"
+
+msgid "Options disponibles :"
+msgstr "Opciones disponibles:"
+
+msgid "Resynchroniser même si déjà fait"
+msgstr "Resincronizar incluso si ya está hecho"
+
+msgid "Simuler sans modifier"
+msgstr "Simular sin modificar"
+
+msgid "Nous traitons votre demande… La synchronisation peut prendre plusieurs minutes pour un grand nombre de paiements."
+msgstr "Procesando su solicitud... La sincronización puede tardar varios minutos para un gran número de pagos."
+
+msgid "Frais bancaires"
+msgstr "Comisiones bancarias"
+
+msgid "Frais Mollie"
+msgstr "Comisiones Mollie"
+
+msgid "Frais Mollie (Carte de crédit)"
+msgstr "Comisiones Mollie (Tarjeta de crédito)"
+
+msgid "Votre Organisation"
+msgstr "Su Organización"
+
+msgid "Export Comptable avec Frais PSP"
+msgstr "Exportación Contable con Comisiones PSP"
+
+msgid "Date règlement"
+msgstr "Fecha de liquidación"
+
+msgid "Plugin pour exporter les rapports comptables avec frais PSP"
+msgstr "Plugin para exportar informes contables con comisiones PSP"
+
+msgid "Client ID of your Mollie Connect application (required for real fees)"
+msgstr "Client ID de su aplicación Mollie Connect (requerido para comisiones reales)"
+
+msgid "Client Secret of your Mollie Connect application"
+msgstr "Client Secret de su aplicación Mollie Connect"
+
+msgid "Mollie OAuth token (managed automatically)"
+msgstr "Token OAuth Mollie (gestionado automáticamente)"
+
+msgid "Mollie OAuth refresh token (managed automatically)"
+msgstr "Token de actualización OAuth Mollie (gestionado automáticamente)"
+
+msgid "OAuth connected"
+msgstr "OAuth conectado"
+
+msgid "Indicates if Mollie Connect OAuth is active"
+msgstr "Indica si OAuth de Mollie Connect está activo"
+
+msgid "SumUp test mode"
+msgstr "Modo test SumUp"
+
+msgid "PSP transactions cache duration"
+msgstr "Duración de caché de transacciones PSP"
+
+msgid "Last known rates"
+msgstr "Últimas tasas conocidas"
+
+msgid "Last settlement rates retrieved (backup for recent payments)"
+msgstr "Últimas tasas de liquidación recuperadas (respaldo para pagos recientes)"
+
+msgid "PSP Transaction ID"
+msgstr "ID de Transacción PSP"
+
+msgid "Gross amount"
+msgstr "Importe bruto"
+
+msgid "PSP fees"
+msgstr "Comisiones PSP"
+
+msgid "Net amount"
+msgstr "Importe neto"
+
+msgid "Settlement ID (Mollie only)"
+msgstr "ID de Liquidación (solo Mollie)"
+
+msgid "Fee details"
+msgstr "Detalles de comisiones"
+
+msgid "Details of different fee types"
+msgstr "Detalles de diferentes tipos de comisiones"
+
+msgid "Year"
+msgstr "Año"
+
+msgid "Month"
+msgstr "Mes"
+
+msgid "Settlement date"
+msgstr "Fecha de liquidación"
+
+msgid "Retrieval date"
+msgstr "Fecha de recuperación"
+
+msgid "Start date must be before end date"
+msgstr "La fecha de inicio debe ser anterior a la fecha de fin"
+
+msgid "Cannot be used with date_from/date_to"
+msgstr "No se puede usar con date_from/date_to"
+
+msgid "Processing your request... Synchronization may take several minutes for a large number of payments."
+msgstr "Procesando su solicitud... La sincronización puede tardar varios minutos para un gran número de pagos."
+
+msgid "Dry-run mode: {synced} payments would be synchronized (total fees: {fees} EUR)"
+msgstr "Modo dry-run: {synced} pagos serían sincronizados (comisiones totales: {fees} EUR)"
+
+msgid "Synchronization successful: {synced}/{total} payments synchronized, {skipped} skipped, {failed} failed. Total fees: {fees} EUR"
+msgstr "Sincronización exitosa: {synced}/{total} pagos sincronizados, {skipped} omitidos, {failed} fallidos. Comisiones totales: {fees} EUR"
+
+msgid "Mollie fees"
+msgstr "Comisiones Mollie"
+
+msgid "Mollie fees (Credit card)"
+msgstr "Comisiones Mollie (Tarjeta de crédito)"
+
+msgid "Mollie fees (Bancontact)"
+msgstr "Comisiones Mollie (Bancontact)"
+
+msgid "Mollie fees (iDEAL)"
+msgstr "Comisiones Mollie (iDEAL)"
+
+msgid "SumUp fees"
+msgstr "Comisiones SumUp"
+
+msgid "Missing OAuth parameters"
+msgstr "Parámetros OAuth faltantes"
+
+msgid "Invalid CSRF token. Please try again."
+msgstr "Token CSRF inválido. Por favor, intente nuevamente."
+
+msgid "Mollie Connect is not connected"
+msgstr "Mollie Connect no está conectado"
+
+msgid "Detailed accounting export including PSP fees (Mollie, SumUp) with CSV/Excel generation and accounting PDF."
+msgstr "Exportación contable detallada incluyendo comisiones PSP (Mollie, SumUp) con generación CSV/Excel y PDF contable."
+
+msgid "Total VAT Collected"
+msgstr "IVA Total Recaudado"
+
+msgid "VAT Collected"
+msgstr "IVA Recaudado"
+
+msgid "Difference"
+msgstr "Diferencia"
+
+msgid "Fee Details"
+msgstr "Detalles de Comisiones"
+
+msgid "Total net received"
+msgstr "Total neto recibido"
+
+msgid "Credit card"
+msgstr "Tarjeta de crédito"
+
+msgid "PSP Fees Export Diagnostic"
+msgstr "Diagnóstico de Exportación Comisiones PSP"
+
+msgid "seconds"
+msgstr "segundos"
+
+msgid "Cache duration"
+msgstr "Duración de caché"
+
+msgid "Total Fees"
+msgstr "Comisiones Totales"
+
+msgid "Connected"
+msgstr "Conectado"
+
+msgid "Create an OAuth app on"
+msgstr "Cree una app OAuth en"
+
+msgid "PSP Diagnostic"
+msgstr "Diagnóstico PSP"
+
+msgid "Disabled"
+msgstr "Desactivado"
+
+msgid "Cache Statistics"
+msgstr "Estadísticas de Caché"
+
+msgid "Last hour"
+msgstr "Última hora"
+
+msgid "Count"
+msgstr "Cantidad"
+
+msgid "Gross Total"
+msgstr "Total Bruto"
+
+msgid "Clear old cache (>7d)"
+msgstr "Limpiar caché antiguo (>7d)"
+
+msgid "Refresh full cache"
+msgstr "Actualizar caché completo"
+
+msgid "Features coming in a future version."
+msgstr "Funciones próximamente en una versión futura."
+
+msgid "Recent errors"
+msgstr "Errores recientes"
+
+msgid "If no date is provided, ALL unsynchronized payments will be processed (may take time)."
+msgstr "Si no se proporciona fecha, se procesarán TODOS los pagos no sincronizados (puede tomar tiempo)."
+
+msgid "Already synchronized payments are ignored unless 'Force' is enabled."
+msgstr "Los pagos ya sincronizados se ignoran a menos que 'Forzar' esté activado."
+
+msgid "Organizer slug (required)"
+msgstr "Slug del organizador (requerido)"
+
+msgid "Event slug (optional)"
+msgstr "Slug del evento (opcional)"
+
+msgid "Total PSP Fees:"
+msgstr "Comisiones PSP Totales:"
+
+msgid "Total PSP Fees"
+msgstr "Comisiones PSP Totales"
+
+msgid "PSP Fees:"
+msgstr "Comisiones PSP:"
+
+msgid "PSP Fees"
+msgstr "Comisiones PSP"
+
+msgid "Event slug (optional, if absent = all organizer events)"
+msgstr "Slug del evento (opcional, si ausente = todos los eventos del organizador)"
+
+msgid "Skipped payments:"
+msgstr "Pagos omitidos:"
+
+msgid "Failed payments:"
+msgstr "Pagos fallidos:"
+
+msgid "Dry-run mode: No changes were made"
+msgstr "Modo dry-run: No se realizaron cambios"
+
+msgid "Fee synchronization"
+msgstr "Sincronización de comisiones"
+
+msgid "Available on Mollie Dashboard"
+msgstr "Disponible en el Panel de Mollie"
+
+msgid "Mollie test mode"
+msgstr "Modo test Mollie"
+
+msgid "Optional - To retrieve real PSP fees"
+msgstr "Opcional - Para recuperar comisiones PSP reales"
+
+msgid "Real PSP fees are synchronized automatically"
+msgstr "Las comisiones PSP reales se sincronizan automáticamente"
+
+msgid "SumUp Developer to obtain an Access Token"
+msgstr "SumUp Developer para obtener un Token de Acceso"
+
+msgid "Advanced options"
+msgstr "Opciones avanzadas"
+
+msgid "Duration in seconds (60-86400)"
+msgstr "Duración en segundos (60-86400)"
+
+msgid "Cache reduces API calls. Recommended: 3600s (1h)"
+msgstr "La caché reduce llamadas API. Recomendado: 3600s (1h)"
+
+msgid "Save configuration"
+msgstr "Guardar configuración"
+
+msgid "which drastically reduces API calls"
+msgstr "lo que reduce drásticamente las llamadas API"
+
+msgid "(1 hour ago)"
+msgstr "(hace 1 hora)"
+
+msgid "Runs via Pretix periodic task"
+msgstr "Se ejecuta mediante tarea periódica de Pretix"
+
+msgid "Only unsynchronized payments from the last 30 days are processed"
+msgstr "Solo se procesan pagos no sincronizados de los últimos 30 días"
+
+msgid "(impact: ~5-10 API req/day)"
+msgstr "(impacto: ~5-10 req API/día)"
+
+msgid "Payments awaiting synchronization"
+msgstr "Pagos en espera de sincronización"
+
+msgid "All payments are synchronized"
+msgstr "Todos los pagos están sincronizados"
+
+msgid "Start synchronization"
+msgstr "Iniciar sincronización"
+
+msgid "Alternative to date_from/date_to (e.g.: 7 for the last week)"
+msgstr "Alternativa a date_from/date_to (ej.: 7 para la última semana)"
+
+msgid "Important:"
+msgstr "Importante:"
+
+msgid "To limit synchronization to a specific period, use the date fields."
+msgstr "Para limitar la sincronización a un período específico, use los campos de fecha."
+
+msgid "Synchronization may take several minutes for a large number of payments."
+msgstr "La sincronización puede tardar varios minutos para un gran número de pagos."
+
+msgid "Note:"
+msgstr "Nota:"
+
+msgid "Synchronization may take several seconds."
+msgstr "La sincronización puede tardar varios segundos."
+
+msgid "Use 'dry-run' mode to simulate without modifying the database."
+msgstr "Use el modo 'dry-run' para simular sin modificar la base de datos."
+
+msgid "Command line"
+msgstr "Línea de comandos"
+
+msgid "You can also use the following Django command:"
+msgstr "También puede usar el siguiente comando Django:"
+
+msgid "Available options:"
+msgstr "Opciones disponibles:"
+
+msgid "Resynchronize even if already done"
+msgstr "Resincronizar incluso si ya está hecho"
+
+msgid "Simulate without modifying"
+msgstr "Simular sin modificar"
+
+msgid "Gosselico"
+msgstr "Gosselico"
+
+msgid "Accounting report with bank fees"
+msgstr "Informe contable con comisiones bancarias"
+
+msgid "Accounting PDF report including payment provider fee details (Mollie, SumUp, etc.)."
+msgstr "Informe PDF contable incluyendo detalles de comisiones del proveedor de pagos (Mollie, SumUp, etc.)."
+
+msgid "Payments and refunds with bank fees"
+msgstr "Pagos y reembolsos con comisiones bancarias"
+
+msgid "Export of payments and refunds including PSP bank fees details (Mollie, SumUp, etc.)."
+msgstr "Exportación de pagos y reembolsos incluyendo detalles de comisiones bancarias PSP (Mollie, SumUp, etc.)."
+
+msgid "Payment method"
+msgstr "Método de pago"
+
+msgid "Transactions"
+msgstr "Transacciones"
+
+msgid "Total bank fees"
+msgstr "Total comisiones bancarias"
+
+msgid "Open items"
+msgstr "Elementos abiertos"
+
+msgid "Orders"
+msgstr "Pedidos"
+
+msgid "Refunds"
+msgstr "Reembolsos"
+
+msgid "Configure your payment provider API keys (Mollie, SumUp) to enable automatic bank fee synchronization."
+msgstr "Configure las claves API de sus proveedores de pago (Mollie, SumUp) para habilitar la sincronización automática de comisiones bancarias."
+
+msgid "Synchronize bank fees from your Mollie and SumUp payments with real PSP data."
+msgstr "Sincronice comisiones bancarias de sus pagos Mollie y SumUp con datos PSP reales."
+
+msgid "Available on"
+msgstr "Disponible en"
+
+msgid "Are you sure you want to disconnect Mollie Connect?"
+msgstr "¿Está seguro de que desea desconectar Mollie Connect?"
+
+msgid " to obtain an Access Token"
+msgstr " para obtener un Token de Acceso"
+

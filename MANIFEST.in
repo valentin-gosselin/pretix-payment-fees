@@ -1,0 +1,5 @@
+recursive-include pretix_payment_fees/static *
+recursive-include pretix_payment_fees/templates *
+recursive-include pretix_payment_fees/locale *
+include LICENSE
+include README.md

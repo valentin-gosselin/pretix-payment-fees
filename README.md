@@ -1,0 +1,248 @@
+# Pretix Payment Fees Tracker
+
+A Pretix plugin that automatically tracks, synchronizes and reports payment provider fees from Mollie and SumUp, providing comprehensive accounting reports with fee breakdowns.
+
+## Features
+
+- **Automatic Fee Synchronization**: Automatically fetch and sync payment fees from Mollie and SumUp APIs
+- **Comprehensive Reporting**: Generate detailed accounting reports including:
+  - PDF accounting reports with payment provider fee sections
+  - Payment and refund lists with fee columns
+  - CSV/Excel exports with complete fee data
+- **Multi-Provider Support**: Currently supports:
+  - Mollie (including OAuth integration)
+  - SumUp
+- **Real-time Fee Display**: View payment fees directly in Pretix order details
+- **Bulk Operations**: Synchronize fees for multiple events at once
+- **Smart Caching**: Reduces API calls with intelligent Django caching
+- **Diagnostic Tools**: Monitor cache status and API errors
+
+## Installation
+
+### Prerequisites
+
+- Pretix >= 2024.0.0
+- Python >= 3.11
+- Access to Mollie and/or SumUp APIs
+
+### Docker Installation (Recommended)
+
+The plugin should be integrated into the Pretix Docker image:
+
+```dockerfile
+FROM pretix/standalone:stable
+
+USER root
+
+# System dependencies for WeasyPrint
+RUN apt-get update && apt-get install -y \
+    libpango-1.0-0 libpangoft2-1.0-0 \
+    libharfbuzz0b libffi-dev libjpeg-dev \
+    libopenjp2-7-dev libcairo2 libgdk-pixbuf2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install the plugin
+RUN pip3 install pretix-payment-fees
+
+USER pretixuser
+RUN cd /pretix/src && make production
+```
+
+### Run Migrations
+
+After deployment, execute migrations:
+
+```bash
+docker exec pretix-dev python -m pretix migrate
+```
+
+## Configuration
+
+### PSP Configuration (Organizer Level)
+
+1. Login as administrator
+2. Navigate to **Organizer → PSP Configuration**
+3. Configure your API keys:
+
+#### Mollie Setup
+- **API Key**: Get from [Mollie Dashboard](https://www.mollie.com/dashboard/developers/api-keys)
+- Format: `live_...` (production) or `test_...` (sandbox)
+- **Test Mode**: Check if using test key
+- **Enable Mollie**: Check to activate integration
+
+#### SumUp Setup
+- **API Key**: Create OAuth app on [SumUp Developer Portal](https://developer.sumup.com/)
+- Request `payments` scope from SumUp
+- **Merchant Code**: Your SumUp merchant identifier
+- **Test Mode**: Check if using sandbox environment
+- **Enable SumUp**: Check to activate integration
+
+#### Advanced Options
+- **Cache Duration**: Default 3600 seconds (1h). Increase for high transaction volumes.
+
+## Usage
+
+### PSP Synchronization
+
+1. Go to **Organizer → PSP Synchronization**
+2. Select events to synchronize
+3. Choose dry run or full sync
+4. Click **Synchronize Fees**
+
+### Generating Reports
+
+#### Accounting Report with Fees
+1. Navigate to **Event → Data exports**
+2. Select **Accounting Report (with banking fees)**
+3. Configure date range and options
+4. Export as PDF
+
+#### Payment List with Fees
+1. Navigate to **Event → Data exports**
+2. Select **Payments and refunds with banking fees**
+3. Export in CSV or Excel format
+
+## Export Formats
+
+### CSV/Excel Columns
+
+| Column | Description |
+|--------|-------------|
+| Payment Date | Payment date and time |
+| Order ID | Pretix order code |
+| Payment Method | Provider (mollie, sumup, etc.) |
+| Gross Amount | Total amount paid |
+| PSP Fees | Provider transaction fees |
+| Net Amount | Gross - Fees |
+| Currency | EUR, USD, etc. |
+| PSP Transaction ID | Provider transaction ID |
+| Settlement ID | Settlement ID (Mollie only) |
+| Status | confirmed, refunded, etc. |
+
+### Report Sections
+
+1. **Main Table**: Transaction list
+2. **Global Totals**: All payment aggregations
+3. **PSP Totals**: Aggregation by payment method
+4. **Accounting Control**: Verification that Gross - Fees = Net
+
+## Management Commands
+
+```bash
+# Sync fees for all events of an organizer
+python manage.py sync_psp_fees --organizer=your-org
+
+# Sync specific event
+python manage.py sync_psp_fees --organizer=your-org --event=your-event
+
+# Dry run mode
+python manage.py sync_psp_fees --organizer=your-org --dry-run
+```
+
+## API Integrations
+
+### Mollie APIs
+- **Balances API**: `/v2/balances/{id}/transactions`
+- **Settlements API**: `/v2/settlements/{id}`
+- **Payments API**: `/v2/payments/{id}`
+- [Mollie Documentation](https://docs.mollie.com/reference/v2/balances-api/overview)
+
+### SumUp APIs
+- **Transactions API**: `/v0.1/me/transactions`
+- **Transaction History**: `/v0.1/me/transactions/history`
+- [SumUp Documentation](https://developer.sumup.com/api/transactions)
+
+## Known Limitations
+
+### Mollie
+- Fees only available if settlement exists
+- Fallback: 2.1% + 0.25 EUR estimation (standard EU card rate)
+- Historical data limited (from July 2022)
+
+### SumUp
+- API may require manual approval for `payments` scope
+- Fees not always directly provided
+- Fallback: 1.95% + 0.15 EUR estimation
+
+### General
+- PSP transaction ↔ Pretix payment matching done by stored ID
+- If ID unavailable, matching by amount/date (may be imprecise)
+- Partial refunds may require manual verification
+
+## Diagnostics
+
+Diagnostic page available at **Organizer → PSP Diagnostics**:
+- Configuration status
+- Cache statistics (count, by provider, age)
+- Recent errors tracking
+
+## Development
+
+### Project Structure
+
+```
+pretix_payment_fees/
+├── __init__.py               # Plugin metadata
+├── signals.py                # Signal receivers
+├── models.py                 # PSPConfig, PSPTransactionCache
+├── forms.py                  # PSP configuration forms
+├── views.py                  # Configuration views
+├── admin_views.py            # Diagnostic views
+├── urls.py                   # Plugin URLs
+├── services/
+│   └── psp_sync.py           # Sync orchestration
+├── psp/
+│   ├── mollie_client.py      # Mollie API client
+│   ├── mollie_oauth_client.py # Mollie OAuth
+│   └── sumup_client.py       # SumUp API client
+├── exporters/
+│   ├── accounting_report_psp.py  # PDF accounting report
+│   └── payment_list_psp.py       # Payment list with fees
+└── templates/
+    └── pretix_payment_fees/
+        ├── settings.html      # PSP config page
+        ├── psp_sync.html      # Sync page
+        └── diagnostic.html    # Diagnostic page
+```
+
+### Testing
+
+```bash
+# Run tests
+docker exec pretix-dev pytest /pretix-payment-fees/tests/
+
+# With coverage
+docker exec pretix-dev pytest --cov=pretix_payment_fees /pretix-payment-fees/tests/
+```
+
+## Support
+
+For issues and feature requests:
+1. Check logs: `docker logs pretix-dev`
+2. Review diagnostic page
+3. Verify API keys are valid
+4. Open a GitHub issue
+
+## License
+
+Apache License 2.0
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Changelog
+
+### 1.2.0 (2025-10-02)
+- Renamed to pretix-payment-fees
+- Added OAuth support for Mollie
+- Added accounting report with PSP fees section
+- Added payment list with fee columns
+- Improved fee synchronization
+
+### 1.0.0 (2025-09-30)
+- Initial release
+- Mollie and SumUp support
+- CSV, Excel, PDF exports
+- Diagnostic page
+- Smart caching

@@ -1,0 +1,183 @@
+{% extends "pretixcontrol/organizers/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+
+{% block title %}{% trans "PSP Diagnostic" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "PSP Fees Export Diagnostic" %}</h1>
+
+<div class="alert alert-info">
+    <i class="fa fa-info-circle"></i>
+    {% trans "This page displays diagnostic information about the accounting export plugin with PSP fees." %}
+</div>
+
+{% if not has_config %}
+<div class="alert alert-danger">
+    <i class="fa fa-warning"></i>
+    {% trans "No PSP configuration found. Please configure your API keys first." %}
+    <a href="{% url 'plugins:pretix_export_frais:settings' organizer=organizer.slug %}" class="btn btn-sm btn-primary">
+        {% trans "Configure now" %}
+    </a>
+</div>
+{% else %}
+<div class="panel panel-success">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <i class="fa fa-check-circle"></i> {% trans "PSP Configuration" %}
+        </h3>
+    </div>
+    <div class="panel-body">
+        <table class="table table-condensed">
+            <tr>
+                <th>Mollie</th>
+                <td>
+                    {% if psp_config.mollie_enabled %}
+                        <span class="label label-success">{% trans "Enabled" %}</span>
+                        {% if psp_config.mollie_test_mode %}
+                            <span class="label label-warning">{% trans "Mode Test" %}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="label label-default">{% trans "Disabled" %}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>SumUp</th>
+                <td>
+                    {% if psp_config.sumup_enabled %}
+                        <span class="label label-success">{% trans "Enabled" %}</span>
+                        {% if psp_config.sumup_test_mode %}
+                            <span class="label label-warning">{% trans "Mode Test" %}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="label label-default">{% trans "Disabled" %}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>{% trans "Cache duration" %}</th>
+                <td>{{ psp_config.cache_duration }} {% trans "seconds" %}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <i class="fa fa-database"></i> {% trans "Cache Statistics" %}
+        </h3>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="panel panel-default text-center">
+                    <div class="panel-body">
+                        <h2>{{ cache_stats.total }}</h2>
+                        <p>{% trans "Transactions en cache" %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default text-center">
+                    <div class="panel-body">
+                        <h2>{{ cache_stats.recent }}</h2>
+                        <p>{% trans "Last hour" %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default text-center">
+                    <div class="panel-body">
+                        <h2>{{ cache_stats.old }}</h2>
+                        <p>{% trans "Plus de 24h" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if cache_stats.by_provider %}
+        <h4>{% trans "By provider" %}</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "PSP" %}</th>
+                    <th>{% trans "Count" %}</th>
+                    <th>{% trans "Gross Total" %}</th>
+                    <th>{% trans "Total Fees" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for provider_stat in cache_stats.by_provider %}
+                <tr>
+                    <td><strong>{{ provider_stat.psp_provider }}</strong></td>
+                    <td>{{ provider_stat.count }}</td>
+                    <td>{{ provider_stat.total_gross|default:"0.00"|floatformat:2 }} EUR</td>
+                    <td>{{ provider_stat.total_fees|default:"0.00"|floatformat:2 }} EUR</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">{% trans "No cached transactions at the moment." %}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <i class="fa fa-wrench"></i> {% trans "Maintenance actions" %}
+        </h3>
+    </div>
+    <div class="panel-body">
+        <p>{% trans "Available actions to manage cache and PSP data." %}</p>
+
+        <div class="btn-group">
+            <button class="btn btn-warning" disabled>
+                <i class="fa fa-trash"></i> {% trans "Clear old cache (>7d)" %}
+            </button>
+            <button class="btn btn-info" disabled>
+                <i class="fa fa-refresh"></i> {% trans "Refresh full cache" %}
+            </button>
+        </div>
+
+        <p class="text-muted" style="margin-top: 10px;">
+            <small>{% trans "Features coming in a future version." %}</small>
+        </p>
+    </div>
+</div>
+
+{% if recent_errors %}
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <i class="fa fa-exclamation-triangle"></i> {% trans "Recent errors" %}
+        </h3>
+    </div>
+    <div class="panel-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Message" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for error in recent_errors %}
+                <tr>
+                    <td>{{ error.timestamp|date:"d/m/Y H:i:s" }}</td>
+                    <td>{{ error.type }}</td>
+                    <td>{{ error.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
