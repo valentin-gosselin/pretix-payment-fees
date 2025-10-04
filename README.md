@@ -21,7 +21,7 @@ A Pretix plugin that automatically tracks, synchronizes and reports payment prov
 
 ### Prerequisites
 
-- Pretix >= 2024.0.0
+- Pretix >= 2024.0.0 fre
 - Python >= 3.11
 - Access to Mollie and/or SumUp APIs
 
@@ -233,16 +233,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
-### 1.2.0 (2025-10-02)
-- Renamed to pretix-payment-fees
-- Added OAuth support for Mollie
-- Added accounting report with PSP fees section
-- Added payment list with fee columns
-- Improved fee synchronization
+### 0.9.0 (2025-10-04) - Beta Release
+- Initial public beta release
+- Mollie integration with OAuth2 support (tested in production)
+- SumUp integration (⚠️ **not yet tested in production**, awaiting real merchant account)
+- Multilingual support (EN, FR, DE, ES, NL, IT, PT, PL)
+- CSV, Excel, PDF exports with fee breakdowns
+- Accounting reports with PSP fees section
+- Smart caching system
+- Diagnostic and monitoring tools
 
-### 1.0.0 (2025-09-30)
-- Initial release
-- Mollie and SumUp support
-- CSV, Excel, PDF exports
-- Diagnostic page
-- Smart caching
+**Note**: Version 1.0.0 will be released after successful SumUp production testing.

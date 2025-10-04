@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
-__version__ = "1.2.0"
+__version__ = "0.9.0"
 
 
 class PluginApp(AppConfig):
@@ -10,7 +10,7 @@ class PluginApp(AppConfig):
 
     class PretixPluginMeta:
         name = _("Accounting Export with PSP Fees")
-        author = "Your Organization"
+        author = "Valentin Gosselin"
         category = "FEATURE"
         description = _(
             "Export comptable détaillé incluant les frais des PSP (Mollie, SumUp) "

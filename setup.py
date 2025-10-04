@@ -31,9 +31,9 @@ setup(
     description="Pretix plugin for tracking and reporting payment provider fees (Mollie, SumUp)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-org/pretix-payment-fees",
-    author="Your Organization",
-    author_email="contact@your-org.com",
+    url="https://github.com/valentin-gosselin/pretix-payment-fees",
+    author="Valentin Gosselin",
+    author_email="valentin@gosselin.pro",
     license="Apache",
     install_requires=[
         "weasyprint>=62.0",
