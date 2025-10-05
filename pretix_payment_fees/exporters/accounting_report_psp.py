@@ -13,7 +13,7 @@ from django.db.models import Sum
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, pgettext_lazy
-from pretix.base.models import Order, OrderFee, OrderPayment
+from pretix.base.models import OrderFee, OrderPayment
 from pretix.base.templatetags.money import money_filter
 from pretix.control.forms.filter import get_all_payment_providers
 from pretix.helpers.reportlab import FontFallbackParagraph
@@ -37,7 +37,8 @@ class AccountingReportPSPExporter(ReportExporter):
     identifier = "accounting_report_psp"
     verbose_name = gettext_lazy("Rapport comptable avec frais bancaires")
     description = gettext_lazy(
-        "Rapport comptable PDF incluant le détail des frais bancaires par fournisseur de paiement (Mollie, SumUp, etc.)."
+        "Rapport comptable PDF incluant le détail des frais bancaires par "
+        "fournisseur de paiement (Mollie, SumUp, etc.)."
     )
     category = pgettext_lazy("export_category", "Analysis")
     filename = "accounting_report_psp"
