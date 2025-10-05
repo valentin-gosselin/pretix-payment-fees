@@ -430,6 +430,34 @@ class MollieClient:
 
         return None
 
+    def _extract_settlement_date(self, settlement_id):
+        """
+        Extract settlement date from Mollie settlement API.
+
+        Args:
+            settlement_id: Mollie settlement ID (e.g., 'stl_xxxxx')
+
+        Returns:
+            datetime: Settlement date if available, None otherwise
+        """
+        if not settlement_id or not settlement_id.startswith('stl_'):
+            return None
+
+        try:
+            settlement_url = f"{self.API_BASE_URL}/settlements/{settlement_id}"
+            settlement_data = self._make_request("GET", settlement_url)
+
+            if settlement_data and 'settledAt' in settlement_data:
+                return make_aware(
+                    datetime.fromisoformat(
+                        settlement_data['settledAt'].replace("Z", "+00:00")
+                    )
+                )
+        except Exception as e:
+            logger.warning(f"Could not extract settlement date for {settlement_id}: {e}")
+
+        return None
+
     def _save_to_cache(self, transaction_id, fee_data, payment_data):
         """Sauvegarde dans le cache Django."""
         if not self.organizer:
@@ -453,7 +481,7 @@ class MollieClient:
                             payment_data.get("createdAt", "").replace("Z", "+00:00")
                         )
                     ),
-                    "settlement_date": None,  # TODO: extraire du settlement si dispo
+                    "settlement_date": self._extract_settlement_date(fee_data.get("settlement_id")),
                 },
             )
         except Exception as e:

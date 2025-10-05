@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    - name: Build package
+      run: python -m build
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/*
+        draft: false
+        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        generate_release_notes: true
+        body: |
+          ## Installation
+
+          ### From PyPI (when available)
+          ```bash
+          pip install pretix-payment-fees
+          ```
+
+          ### From this release
+          ```bash
+          pip install https://github.com/valentin-gosselin/pretix-payment-fees/releases/download/${{ github.ref_name }}/pretix_payment_fees-${{ github.ref_name }}-py3-none-any.whl
+          ```
+
+          See [CHANGELOG.md](https://github.com/valentin-gosselin/pretix-payment-fees/blob/main/CHANGELOG.md) for details.
+
+    # Uncomment when ready to publish to PyPI
+    # - name: Publish to PyPI
+    #   env:
+    #     TWINE_USERNAME: __token__
+    #     TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+    #   run: |
+    #     twine upload dist/*

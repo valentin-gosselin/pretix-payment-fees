@@ -1,6 +1,26 @@
 # Pretix Payment Fees Tracker
 
+[![Version](https://img.shields.io/badge/version-0.9.0--beta-blue.svg)](https://github.com/valentin-gosselin/pretix-payment-fees/releases)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Pretix](https://img.shields.io/badge/pretix-2024.0.0+-purple.svg)](https://pretix.eu/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Multilingual](https://img.shields.io/badge/languages-8-brightgreen.svg)](#supported-languages)
+
 A Pretix plugin that automatically tracks, synchronizes and reports payment provider fees from Mollie and SumUp, providing comprehensive accounting reports with fee breakdowns.
+
+## Supported Languages
+
+🌍 This plugin is available in 8 languages with 100% translation coverage:
+
+- 🇬🇧 **English** (Base)
+- 🇫🇷 **Français** (French)
+- 🇩🇪 **Deutsch** (German)
+- 🇪🇸 **Español** (Spanish)
+- 🇳🇱 **Nederlands** (Dutch)
+- 🇮🇹 **Italiano** (Italian)
+- 🇵🇹 **Português** (Portuguese)
+- 🇵🇱 **Polski** (Polish)
 
 ## Features
 

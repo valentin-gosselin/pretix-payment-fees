@@ -86,10 +86,37 @@ class DiagnosticView(OrganizerPermissionRequiredMixin, TemplateView):
         }
 
     def _get_recent_errors(self):
-        """Retrieve recent errors from logs."""
-        # TODO: implement API error logging system
-        # Pour l'instant, retourner une liste vide
-        return []
+        """
+        Retrieve recent API errors from Django logs.
+
+        Returns:
+            list: Recent errors from the last 24 hours, limited to 10 entries
+        """
+        from django.contrib.admin.models import LogEntry, CHANGE
+        from django.utils.timezone import now
+        from datetime import timedelta
+
+        # Get error logs from the last 24 hours for this organizer
+        yesterday = now() - timedelta(days=1)
+
+        # Query LogEntry for PSP-related errors
+        error_logs = LogEntry.objects.filter(
+            content_type__app_label='pretix_payment_fees',
+            action_time__gte=yesterday,
+            action_flag=CHANGE,
+            change_message__icontains='error'
+        ).order_by('-action_time')[:10]
+
+        # Format errors for display
+        errors = []
+        for log in error_logs:
+            errors.append({
+                'timestamp': log.action_time,
+                'message': log.change_message,
+                'user': log.user.email if log.user else 'System'
+            })
+
+        return errors
 
 
 class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
