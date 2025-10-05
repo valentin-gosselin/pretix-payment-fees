@@ -3,9 +3,10 @@ import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-import requests
 from django.core.cache import cache
 from django.utils.timezone import make_aware, now
+
+import requests
 
 from ..models import PSPTransactionCache
 
@@ -144,8 +145,8 @@ class MollieClient:
             return None
 
         try:
-            from .mollie_oauth_client import MollieOAuthClient
             from ..models import PSPConfig
+            from .mollie_oauth_client import MollieOAuthClient
 
             payment_id = payment_data.get("id", "")
             settlement_id = payment_data.get("settlementId")

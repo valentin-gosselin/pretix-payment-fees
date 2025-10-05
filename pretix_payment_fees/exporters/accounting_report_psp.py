@@ -11,17 +11,18 @@ from decimal import Decimal
 
 from django.db.models import Sum
 from django.utils.html import escape
-from django.utils.translation import gettext as _, gettext_lazy, pgettext_lazy
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_RIGHT
-from reportlab.lib.units import mm
-from reportlab.platypus import KeepTogether, Paragraph, Spacer, Table, TableStyle
-
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy, pgettext_lazy
 from pretix.base.models import Order, OrderFee, OrderPayment
 from pretix.base.templatetags.money import money_filter
 from pretix.control.forms.filter import get_all_payment_providers
 from pretix.helpers.reportlab import FontFallbackParagraph
 from pretix.plugins.reports.accountingreport import ReportExporter
+
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.units import mm
+from reportlab.platypus import KeepTogether, Paragraph, Spacer, Table, TableStyle
 
 
 class AccountingReportPSPExporter(ReportExporter):
@@ -49,9 +50,10 @@ class AccountingReportPSPExporter(ReportExporter):
         Copie de la structure du parent avec ajout de _table_psp_fees.
         """
         import tempfile
-        from reportlab.platypus import PageTemplate
 
         from pretix.plugins.reports.exporters import ReportlabExportMixin
+
+        from reportlab.platypus import PageTemplate
 
         with tempfile.NamedTemporaryFile(suffix=".pdf") as f:
             ReportlabExportMixin.register_fonts()
@@ -297,6 +299,7 @@ class AccountingReportPSPExporter(ReportExporter):
         Clone de la méthode parent avec ajout d'une ligne "Frais PSP".
         """
         import datetime
+
         from django.db.models import F
         from django.utils.formats import date_format
         from django.utils.timezone import now

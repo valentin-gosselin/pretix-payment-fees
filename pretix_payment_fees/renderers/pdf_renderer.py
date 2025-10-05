@@ -1,8 +1,9 @@
-from django.utils.translation import gettext_lazy as _
 import io
 from decimal import Decimal
 
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
+
 from weasyprint import HTML
 
 

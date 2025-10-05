@@ -177,8 +177,10 @@ def auto_sync_payment_fees(sender, **kwargs):
     qui ont activé la synchronisation automatique.
     """
     from datetime import timedelta
+
     from django.utils.timezone import now
-    from pretix.base.models import Organizer, OrderPayment
+    from pretix.base.models import OrderPayment, Organizer
+
     from .models import PSPConfig
     from .services.psp_sync import PSPSyncService
 

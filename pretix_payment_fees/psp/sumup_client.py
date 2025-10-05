@@ -3,9 +3,10 @@ import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-import requests
 from django.core.cache import cache
 from django.utils.timezone import make_aware, now
+
+import requests
 
 from ..models import PSPTransactionCache
 

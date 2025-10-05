@@ -92,9 +92,10 @@ class DiagnosticView(OrganizerPermissionRequiredMixin, TemplateView):
         Returns:
             list: Recent errors from the last 24 hours, limited to 10 entries
         """
-        from django.contrib.admin.models import LogEntry, CHANGE
-        from django.utils.timezone import now
         from datetime import timedelta
+
+        from django.contrib.admin.models import CHANGE, LogEntry
+        from django.utils.timezone import now
 
         # Get error logs from the last 24 hours for this organizer
         yesterday = now() - timedelta(days=1)

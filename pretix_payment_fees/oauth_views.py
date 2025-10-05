@@ -2,9 +2,9 @@
 Vues pour gérer l'authentification OAuth avec Mollie Connect.
 """
 
-import logging
-import json
 import base64
+import json
+import logging
 from datetime import timedelta
 
 from django.contrib import messages

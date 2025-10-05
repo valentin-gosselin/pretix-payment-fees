@@ -1,5 +1,6 @@
-from django.utils.translation import gettext_lazy as _
 import io
+
+from django.utils.translation import gettext_lazy as _
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill

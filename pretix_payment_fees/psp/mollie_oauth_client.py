@@ -10,8 +10,9 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, Optional
 
-import requests
 from django.utils.timezone import now
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -489,7 +490,7 @@ class MollieOAuthClient:
             }
             ou None si erreur
         """
-        from ..models import SettlementRateCache, PSPConfig
+        from ..models import PSPConfig, SettlementRateCache
 
         # 1. Vérifier le cache
         try:

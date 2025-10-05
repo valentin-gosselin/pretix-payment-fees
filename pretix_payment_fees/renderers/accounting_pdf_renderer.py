@@ -11,7 +11,11 @@ from io import BytesIO
 from typing import Tuple
 
 from django.utils.formats import date_format
-from django.utils.translation import gettext as _, pgettext
+from django.utils.translation import gettext as _
+from django.utils.translation import pgettext
+from pretix.base.models import OrderFee
+from pretix.base.templatetags.money import money_filter
+
 from reportlab.lib import colors, pagesizes
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle, StyleSheet1
@@ -27,8 +31,6 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
-from pretix.base.models import OrderFee
-from pretix.base.templatetags.money import money_filter
 
 logger = logging.getLogger(__name__)
 
