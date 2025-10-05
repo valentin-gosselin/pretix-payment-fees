@@ -3,10 +3,8 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.db.models import Count, Sum
-from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.dateparse import parse_date
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView, TemplateView
@@ -258,7 +256,8 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
             messages.info(
                 self.request,
                 _(
-                    "Processing your request... Synchronization may take several minutes for a large number of payments."
+                    "Processing your request... Synchronization may take several "
+                    "minutes for a large number of payments."
                 ),
             )
 
