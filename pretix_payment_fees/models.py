@@ -12,9 +12,7 @@ def generate_key():
 class PSPConfig(models.Model):
     """Organizer-level PSP configuration."""
 
-    organizer = models.OneToOneField(
-        Organizer, on_delete=models.CASCADE, related_name="psp_config"
-    )
+    organizer = models.OneToOneField(Organizer, on_delete=models.CASCADE, related_name="psp_config")
 
     # Mollie - Standard API Key
     mollie_enabled = models.BooleanField(default=False, verbose_name=_("Enable Mollie"))
@@ -24,9 +22,7 @@ class PSPConfig(models.Model):
         verbose_name=_("Mollie API Key"),
         help_text=_("Mollie API key (live_ or test_)"),
     )
-    mollie_test_mode = models.BooleanField(
-        default=False, verbose_name=_("Mollie test mode")
-    )
+    mollie_test_mode = models.BooleanField(default=False, verbose_name=_("Mollie test mode"))
 
     # Mollie - OAuth / Mollie Connect
     mollie_client_id = models.CharField(
@@ -71,9 +67,7 @@ class PSPConfig(models.Model):
         verbose_name=_("SumUp API Key"),
         help_text="API Key ou Access Token SumUp",
     )
-    sumup_test_mode = models.BooleanField(
-        default=False, verbose_name=_("SumUp test mode")
-    )
+    sumup_test_mode = models.BooleanField(default=False, verbose_name=_("SumUp test mode"))
 
     # Cache & métadonnées
     cache_duration = models.IntegerField(
@@ -98,11 +92,11 @@ class PSPConfig(models.Model):
     )
     auto_sync_interval = models.CharField(
         max_length=20,
-        default='6hours',
+        default="6hours",
         choices=[
-            ('hourly', _('Every hour')),
-            ('6hours', _('Every 6 hours')),
-            ('daily', _('Once a day')),
+            ("hourly", _("Every hour")),
+            ("6hours", _("Every 6 hours")),
+            ("daily", _("Once a day")),
         ],
         verbose_name=_("Synchronization frequency"),
         help_text=_("Automatic synchronization frequency"),
@@ -140,12 +134,8 @@ class PSPTransactionCache(models.Model):
     amount_gross = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name=_("Gross amount")
     )
-    amount_fee = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name=_("PSP fees")
-    )
-    amount_net = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name=_("Net amount")
-    )
+    amount_fee = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("PSP fees"))
+    amount_net = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("Net amount"))
     currency = models.CharField(max_length=3, default="EUR")
 
     settlement_id = models.CharField(
@@ -166,9 +156,7 @@ class PSPTransactionCache(models.Model):
     )
 
     transaction_date = models.DateTimeField(verbose_name="Date transaction")
-    settlement_date = models.DateTimeField(
-        null=True, blank=True, verbose_name=_("Settlement date")
-    )
+    settlement_date = models.DateTimeField(null=True, blank=True, verbose_name=_("Settlement date"))
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

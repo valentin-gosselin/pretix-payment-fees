@@ -4,6 +4,7 @@ Service de synchronisation des frais PSP.
 Ce service récupère les frais réels depuis les APIs PSP (Mollie, SumUp)
 et les stocke dans Pretix via OrderFee et payment.info_data.
 """
+
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -67,9 +68,7 @@ class PSPSyncService:
             psp_config: Configuration PSP (si None, sera récupérée)
         """
         self.organizer = organizer
-        self.psp_config = psp_config or PSPConfig.objects.filter(
-            organizer=organizer
-        ).first()
+        self.psp_config = psp_config or PSPConfig.objects.filter(organizer=organizer).first()
 
         # Initialiser les clients PSP
         self.mollie_client = None
@@ -122,23 +121,24 @@ class PSPSyncService:
         # Token expiré - tenter de rafraîchir
         logger.info("Mollie OAuth token expired, refreshing...")
         try:
-            token_data = oauth_client.refresh_access_token(
-                self.psp_config.mollie_refresh_token
-            )
+            token_data = oauth_client.refresh_access_token(self.psp_config.mollie_refresh_token)
 
             # Mettre à jour la config avec le nouveau token
             from datetime import timedelta
+
             expires_in = token_data.get("expires_in", 3600)
 
             self.psp_config.mollie_access_token = token_data["access_token"]
             if "refresh_token" in token_data:
                 self.psp_config.mollie_refresh_token = token_data["refresh_token"]
             self.psp_config.mollie_token_expires_at = now() + timedelta(seconds=expires_in)
-            self.psp_config.save(update_fields=[
-                "mollie_access_token",
-                "mollie_refresh_token",
-                "mollie_token_expires_at"
-            ])
+            self.psp_config.save(
+                update_fields=[
+                    "mollie_access_token",
+                    "mollie_refresh_token",
+                    "mollie_token_expires_at",
+                ]
+            )
 
             logger.info("Successfully refreshed Mollie OAuth token")
             return self.psp_config.mollie_access_token
@@ -178,7 +178,7 @@ class PSPSyncService:
                 has_fee = OrderFee.objects.filter(
                     order=payment.order,
                     fee_type=OrderFee.FEE_TYPE_PAYMENT,
-                    internal_type=provider_fee_type
+                    internal_type=provider_fee_type,
                 ).exists()
                 if has_fee:
                     already_synced_payment_ids.append(payment.id)
@@ -200,9 +200,7 @@ class PSPSyncService:
             try:
                 self._sync_single_payment(payment, force=force, dry_run=dry_run, result=result)
             except Exception as e:
-                result.add_error(
-                    str(payment.id), f"Unexpected error: {str(e)}"
-                )
+                result.add_error(str(payment.id), f"Unexpected error: {str(e)}")
                 logger.exception(f"Unexpected error syncing payment {payment.id}")
 
         logger.info(str(result))
@@ -231,7 +229,9 @@ class PSPSyncService:
         # Récupérer les données PSP
         psp_data = self._fetch_psp_data(payment)
         if not psp_data:
-            logger.warning(f"⊗ Payment {payment.id} FAILED: no PSP data (provider={payment.provider}, transaction_id={payment.info_data.get('id') if payment.info_data else 'NO INFO_DATA'})")
+            logger.warning(
+                f"⊗ Payment {payment.id} FAILED: no PSP data (provider={payment.provider}, transaction_id={payment.info_data.get('id') if payment.info_data else 'NO INFO_DATA'})"
+            )
             result.add_error(
                 str(payment.id), "Failed to fetch PSP data (no API key or unsupported provider)"
             )
@@ -256,9 +256,7 @@ class PSPSyncService:
             self._update_payment_info_data(payment, psp_data)
 
         result.add_success(fee_amount)
-        logger.info(
-            f"Successfully synced payment {payment.id}: fee={fee_amount} EUR"
-        )
+        logger.info(f"Successfully synced payment {payment.id}: fee={fee_amount} EUR")
 
     def _fetch_psp_data(self, payment: OrderPayment) -> Optional[Dict]:
         """
@@ -289,7 +287,9 @@ class PSPSyncService:
                 logger.warning("Mollie client not configured")
                 return None
 
-            logger.info(f"Fetching Mollie data for payment {payment.id}, transaction_id={transaction_id}")
+            logger.info(
+                f"Fetching Mollie data for payment {payment.id}, transaction_id={transaction_id}"
+            )
             return self.mollie_client.get_transaction_details(transaction_id)
 
         # SumUp
@@ -298,7 +298,9 @@ class PSPSyncService:
                 logger.warning("SumUp client not configured")
                 return None
 
-            logger.info(f"Fetching SumUp data for payment {payment.id}, transaction_id={transaction_id}")
+            logger.info(
+                f"Fetching SumUp data for payment {payment.id}, transaction_id={transaction_id}"
+            )
             return self.sumup_client.get_transaction_details(transaction_id)
 
         else:
@@ -406,9 +408,7 @@ class PSPSyncService:
         if not date_to:
             date_to = now()
 
-        logger.info(
-            f"Syncing payments for event {event.slug} from {date_from} to {date_to}"
-        )
+        logger.info(f"Syncing payments for event {event.slug} from {date_from} to {date_to}")
 
         # Récupérer les paiements
         payments = OrderPayment.objects.filter(
@@ -444,11 +444,21 @@ class PSPSyncService:
             PSPSyncResult
         """
         # Construire le queryset de base
-        payments_qs = OrderPayment.objects.filter(
-            order__event__organizer=self.organizer,
-            state=OrderPayment.PAYMENT_STATE_CONFIRMED,
-            provider__in=["mollie", "mollie_bancontact", "mollie_ideal", "mollie_creditcard", "sumup"]
-        ).select_related("order", "order__event").order_by("-payment_date")
+        payments_qs = (
+            OrderPayment.objects.filter(
+                order__event__organizer=self.organizer,
+                state=OrderPayment.PAYMENT_STATE_CONFIRMED,
+                provider__in=[
+                    "mollie",
+                    "mollie_bancontact",
+                    "mollie_ideal",
+                    "mollie_creditcard",
+                    "sumup",
+                ],
+            )
+            .select_related("order", "order__event")
+            .order_by("-payment_date")
+        )
 
         # Calculer les dates SI spécifiées
         if days_back:

@@ -147,14 +147,14 @@ class MollieClient:
             from .mollie_oauth_client import MollieOAuthClient
             from ..models import PSPConfig
 
-            payment_id = payment_data.get('id', '')
-            settlement_id = payment_data.get('settlementId')
+            payment_id = payment_data.get("id", "")
+            settlement_id = payment_data.get("settlementId")
 
             # 1. Créer le client OAuth
             oauth_client = MollieOAuthClient(
                 client_id="",  # Not needed for read operations
                 client_secret="",
-                access_token=self.access_token
+                access_token=self.access_token,
             )
 
             # 2. Récupérer les rates du settlement
@@ -191,7 +191,9 @@ class MollieClient:
                     "source": "oauth_settlement_rates",
                 }
             else:
-                logger.info(f"⊗ Skipping {payment_id}: Rounding difference or unsupported payment type")
+                logger.info(
+                    f"⊗ Skipping {payment_id}: Rounding difference or unsupported payment type"
+                )
                 return None
 
         except Exception as e:
@@ -315,13 +317,21 @@ class MollieClient:
             exact_fees = self._get_exact_fees_with_settlement_rates(payment_data)
             if exact_fees:
                 amount_fee = exact_fees.get("amount_fee", Decimal("0.00"))
-                fee_details.append(exact_fees.get("fee_details_text", "Frais Mollie (calculés settlement rates)"))
-                logger.info(f"✓ Payment {payment_id}: Using EXACT fees from settlement rates = {amount_fee} EUR")
+                fee_details.append(
+                    exact_fees.get("fee_details_text", "Frais Mollie (calculés settlement rates)")
+                )
+                logger.info(
+                    f"✓ Payment {payment_id}: Using EXACT fees from settlement rates = {amount_fee} EUR"
+                )
             else:
                 # Fallback: estimation si rates non disponibles
                 amount_fee = self._estimate_mollie_fees(payment_data, amount_gross)
-                fee_details.append(f"Frais Mollie (estimés - rates non disponibles): {amount_fee:.2f} {currency}")
-                logger.info(f"Payment {payment_id}: Using estimated fees (no rates) = {amount_fee} EUR")
+                fee_details.append(
+                    f"Frais Mollie (estimés - rates non disponibles): {amount_fee:.2f} {currency}"
+                )
+                logger.info(
+                    f"Payment {payment_id}: Using estimated fees (no rates) = {amount_fee} EUR"
+                )
         else:
             # Pas d'OAuth: estimer avec grille tarifaire
             amount_fee = self._estimate_mollie_fees(payment_data, amount_gross)
@@ -358,13 +368,11 @@ class MollieClient:
     def _make_request(self, method, url, params=None, json=None, retry=0):
         """Effectue une requête avec retry/backoff."""
         try:
-            response = self.session.request(
-                method, url, params=params, json=json, timeout=30
-            )
+            response = self.session.request(method, url, params=params, json=json, timeout=30)
 
             if response.status_code == 429:  # Rate limit
                 if retry < self.MAX_RETRIES:
-                    wait_time = self.BACKOFF_FACTOR ** retry
+                    wait_time = self.BACKOFF_FACTOR**retry
                     logger.warning(
                         f"Rate limited by Mollie, waiting {wait_time}s (retry {retry + 1}/{self.MAX_RETRIES})"
                     )
@@ -385,7 +393,7 @@ class MollieClient:
             else:
                 logger.error(f"Mollie API HTTP error: {e}", exc_info=True)
                 if retry < self.MAX_RETRIES:
-                    wait_time = self.BACKOFF_FACTOR ** retry
+                    wait_time = self.BACKOFF_FACTOR**retry
                     time.sleep(wait_time)
                     return self._make_request(method, url, params, json, retry + 1)
                 return None
@@ -410,11 +418,11 @@ class MollieClient:
             if cached.modified > now() - timedelta(hours=1):
                 return {
                     "amount_fee": cached.amount_fee,
-                    "fee_details_text": ", ".join(
-                        [f"{k}: {v}" for k, v in cached.fee_details.items()]
-                    )
-                    if cached.fee_details
-                    else "",
+                    "fee_details_text": (
+                        ", ".join([f"{k}: {v}" for k, v in cached.fee_details.items()])
+                        if cached.fee_details
+                        else ""
+                    ),
                     "settlement_id": cached.settlement_id or "",
                     "status": cached.status,
                     "amount_gross": cached.amount_gross,
@@ -440,18 +448,16 @@ class MollieClient:
         Returns:
             datetime: Settlement date if available, None otherwise
         """
-        if not settlement_id or not settlement_id.startswith('stl_'):
+        if not settlement_id or not settlement_id.startswith("stl_"):
             return None
 
         try:
             settlement_url = f"{self.API_BASE_URL}/settlements/{settlement_id}"
             settlement_data = self._make_request("GET", settlement_url)
 
-            if settlement_data and 'settledAt' in settlement_data:
+            if settlement_data and "settledAt" in settlement_data:
                 return make_aware(
-                    datetime.fromisoformat(
-                        settlement_data['settledAt'].replace("Z", "+00:00")
-                    )
+                    datetime.fromisoformat(settlement_data["settledAt"].replace("Z", "+00:00"))
                 )
         except Exception as e:
             logger.warning(f"Could not extract settlement date for {settlement_id}: {e}")

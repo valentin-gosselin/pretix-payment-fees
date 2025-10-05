@@ -101,20 +101,22 @@ class DiagnosticView(OrganizerPermissionRequiredMixin, TemplateView):
 
         # Query LogEntry for PSP-related errors
         error_logs = LogEntry.objects.filter(
-            content_type__app_label='pretix_payment_fees',
+            content_type__app_label="pretix_payment_fees",
             action_time__gte=yesterday,
             action_flag=CHANGE,
-            change_message__icontains='error'
-        ).order_by('-action_time')[:10]
+            change_message__icontains="error",
+        ).order_by("-action_time")[:10]
 
         # Format errors for display
         errors = []
         for log in error_logs:
-            errors.append({
-                'timestamp': log.action_time,
-                'message': log.change_message,
-                'user': log.user.email if log.user else 'System'
-            })
+            errors.append(
+                {
+                    "timestamp": log.action_time,
+                    "message": log.change_message,
+                    "user": log.user.email if log.user else "System",
+                }
+            )
 
         return errors
 
@@ -146,7 +148,7 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
             ctx["sumup_enabled"] = psp_config.sumup_enabled and psp_config.sumup_api_key
 
             # Auto-sync form
-            if 'auto_sync_form' not in ctx:
+            if "auto_sync_form" not in ctx:
                 ctx["auto_sync_form"] = PSPAutoSyncForm(instance=psp_config)
         except PSPConfig.DoesNotExist:
             ctx["psp_config"] = None
@@ -170,8 +172,14 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
         all_payments = OrderPayment.objects.filter(
             order__event__organizer=organizer,
             state=OrderPayment.PAYMENT_STATE_CONFIRMED,
-            provider__in=["mollie", "mollie_bancontact", "mollie_ideal", "mollie_creditcard", "sumup"]
-        ).select_related('order')
+            provider__in=[
+                "mollie",
+                "mollie_bancontact",
+                "mollie_ideal",
+                "mollie_creditcard",
+                "sumup",
+            ],
+        ).select_related("order")
 
         total_pending = 0
         by_provider = {}
@@ -183,7 +191,7 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
             has_fee = OrderFee.objects.filter(
                 order=payment.order,
                 fee_type=OrderFee.FEE_TYPE_PAYMENT,
-                internal_type=provider_fee_type
+                internal_type=provider_fee_type,
             ).exists()
 
             if not has_fee:
@@ -199,7 +207,7 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         """Handle both forms: manual sync and auto-sync."""
         # Vérifier quel formulaire a été soumis
-        if 'save_auto_sync' in request.POST:
+        if "save_auto_sync" in request.POST:
             # Auto-sync form
             try:
                 psp_config = PSPConfig.objects.get(organizer=request.organizer)
@@ -220,7 +228,7 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
                 else:
                     # Retourner avec les erreurs
                     ctx = self.get_context_data()
-                    ctx['auto_sync_form'] = auto_sync_form
+                    ctx["auto_sync_form"] = auto_sync_form
                     return self.render_to_response(ctx)
             except PSPConfig.DoesNotExist:
                 messages.error(request, _("PSP configuration not found."))
@@ -248,7 +256,9 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
         if not dry_run:
             messages.info(
                 self.request,
-                _("Processing your request... Synchronization may take several minutes for a large number of payments."),
+                _(
+                    "Processing your request... Synchronization may take several minutes for a large number of payments."
+                ),
             )
 
         try:
@@ -257,9 +267,7 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
 
             # Synchroniser
             if event_slug:
-                event = Event.objects.get(
-                    slug=event_slug, organizer=self.request.organizer
-                )
+                event = Event.objects.get(slug=event_slug, organizer=self.request.organizer)
                 result = sync_service.sync_event_payments(
                     event=event,
                     date_from=date_from,
@@ -316,9 +324,7 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
                 if len(result.errors) > 5:
                     messages.warning(
                         self.request,
-                        _("... and {count} other errors").format(
-                            count=len(result.errors) - 5
-                        ),
+                        _("... and {count} other errors").format(count=len(result.errors) - 5),
                     )
 
         except Exception as e:

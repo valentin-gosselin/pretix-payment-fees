@@ -4,7 +4,13 @@ import logging
 from django.dispatch import receiver
 from django.urls import include, path, resolve, reverse
 from django.utils.translation import gettext_lazy as _
-from pretix.base.signals import order_fee_type_name, order_paid, periodic_task, register_data_exporters, register_multievent_data_exporters
+from pretix.base.signals import (
+    order_fee_type_name,
+    order_paid,
+    periodic_task,
+    register_data_exporters,
+    register_multievent_data_exporters,
+)
 from pretix.control.signals import nav_organizer
 from pretix.multidomain.urlreverse import get_event_domain
 
@@ -54,8 +60,7 @@ def navbar_organizer(sender, request, organizer, **kwargs):
                 "plugins:pretix_payment_fees:settings",
                 kwargs={"organizer": organizer.slug},
             ),
-            "active": url.namespace == "plugins:pretix_payment_fees"
-            and url.url_name == "settings",
+            "active": url.namespace == "plugins:pretix_payment_fees" and url.url_name == "settings",
             "icon": "credit-card",
         },
     ]
@@ -104,26 +109,39 @@ def on_order_paid(sender, **kwargs):
     try:
         psp_config = PSPConfig.objects.get(organizer=order.event.organizer)
     except PSPConfig.DoesNotExist:
-        logger.debug(f"No PSP config for organizer {order.event.organizer.slug}, skipping auto-sync")
+        logger.debug(
+            f"No PSP config for organizer {order.event.organizer.slug}, skipping auto-sync"
+        )
         return
 
     # Vérifier qu'au moins un PSP est activé
     if not (psp_config.mollie_enabled or psp_config.sumup_enabled):
-        logger.debug(f"No PSP enabled for organizer {order.event.organizer.slug}, skipping auto-sync")
+        logger.debug(
+            f"No PSP enabled for organizer {order.event.organizer.slug}, skipping auto-sync"
+        )
         return
 
     # Récupérer le dernier paiement confirmé
     from pretix.base.models import OrderPayment
-    payment = order.payments.filter(
-        state=OrderPayment.PAYMENT_STATE_CONFIRMED
-    ).order_by("-payment_date").first()
+
+    payment = (
+        order.payments.filter(state=OrderPayment.PAYMENT_STATE_CONFIRMED)
+        .order_by("-payment_date")
+        .first()
+    )
 
     if not payment:
         logger.warning(f"Order {order.code} marked as paid but no confirmed payment found")
         return
 
     # Vérifier si le provider est supporté
-    supported_providers = ["mollie", "mollie_bancontact", "mollie_ideal", "mollie_creditcard", "sumup"]
+    supported_providers = [
+        "mollie",
+        "mollie_bancontact",
+        "mollie_ideal",
+        "mollie_creditcard",
+        "sumup",
+    ]
     if payment.provider not in supported_providers:
         logger.debug(f"Payment provider {payment.provider} not supported for auto-sync, skipping")
         return
@@ -136,9 +154,13 @@ def on_order_paid(sender, **kwargs):
         result = sync_service.sync_payments([payment], force=False, dry_run=False)
 
         if result.synced_payments > 0:
-            logger.info(f"Successfully auto-synced PSP fees for order {order.code}: {result.total_fees} EUR")
+            logger.info(
+                f"Successfully auto-synced PSP fees for order {order.code}: {result.total_fees} EUR"
+            )
         elif result.skipped_payments > 0:
-            logger.debug(f"Payment {payment.id} skipped during auto-sync (already synced or zero fees)")
+            logger.debug(
+                f"Payment {payment.id} skipped during auto-sync (already synced or zero fees)"
+            )
         else:
             logger.warning(f"Failed to auto-sync PSP fees for order {order.code}: {result.errors}")
     except Exception as e:
@@ -163,7 +185,7 @@ def auto_sync_payment_fees(sender, **kwargs):
     logger.info("Running periodic auto-sync for payment fees")
 
     # Parcourir tous les organisateurs avec auto_sync activé
-    configs = PSPConfig.objects.filter(auto_sync_enabled=True).select_related('organizer')
+    configs = PSPConfig.objects.filter(auto_sync_enabled=True).select_related("organizer")
 
     for psp_config in configs:
         try:
@@ -175,9 +197,9 @@ def auto_sync_payment_fees(sender, **kwargs):
             # Déterminer si on doit synchroniser selon l'intervalle configuré
             should_sync = False
             interval_hours = {
-                'hourly': 1,
-                '6hours': 6,
-                'daily': 24,
+                "hourly": 1,
+                "6hours": 6,
+                "daily": 24,
             }
 
             hours_since_last_sync = interval_hours.get(psp_config.auto_sync_interval, 6)
@@ -190,7 +212,9 @@ def auto_sync_payment_fees(sender, **kwargs):
                 time_since_last = now() - psp_config.last_auto_sync
                 if time_since_last >= timedelta(hours=hours_since_last_sync):
                     should_sync = True
-                    logger.info(f"Auto-sync due for {psp_config.organizer.slug} (last: {psp_config.last_auto_sync})")
+                    logger.info(
+                        f"Auto-sync due for {psp_config.organizer.slug} (last: {psp_config.last_auto_sync})"
+                    )
 
             if not should_sync:
                 logger.debug(f"Skipping {psp_config.organizer.slug}: too soon since last sync")
@@ -205,11 +229,19 @@ def auto_sync_payment_fees(sender, **kwargs):
                 payments = OrderPayment.objects.filter(
                     order__event__organizer=psp_config.organizer,
                     state=OrderPayment.PAYMENT_STATE_CONFIRMED,
-                    provider__in=["mollie", "mollie_bancontact", "mollie_ideal", "mollie_creditcard", "sumup"],
+                    provider__in=[
+                        "mollie",
+                        "mollie_bancontact",
+                        "mollie_ideal",
+                        "mollie_creditcard",
+                        "sumup",
+                    ],
                     payment_date__gte=date_from,
-                ).select_related('order', 'order__event')
+                ).select_related("order", "order__event")
 
-                logger.info(f"Auto-syncing {payments.count()} payments for {psp_config.organizer.slug}")
+                logger.info(
+                    f"Auto-syncing {payments.count()} payments for {psp_config.organizer.slug}"
+                )
 
                 # Lancer la synchronisation avec skip_already_synced=True (optimisation)
                 sync_service = PSPSyncService(organizer=psp_config.organizer, psp_config=psp_config)
@@ -217,12 +249,12 @@ def auto_sync_payment_fees(sender, **kwargs):
                     payments,
                     force=False,
                     dry_run=False,
-                    skip_already_synced=True  # Ne synchronise que les nouveaux
+                    skip_already_synced=True,  # Ne synchronise que les nouveaux
                 )
 
                 # Mettre à jour le timestamp
                 psp_config.last_auto_sync = now()
-                psp_config.save(update_fields=['last_auto_sync'])
+                psp_config.save(update_fields=["last_auto_sync"])
 
             logger.info(
                 f"Auto-sync completed for {psp_config.organizer.slug}: "
@@ -231,4 +263,6 @@ def auto_sync_payment_fees(sender, **kwargs):
             )
 
         except Exception as e:
-            logger.error(f"Error during auto-sync for {psp_config.organizer.slug}: {e}", exc_info=True)
+            logger.error(
+                f"Error during auto-sync for {psp_config.organizer.slug}: {e}", exc_info=True
+            )

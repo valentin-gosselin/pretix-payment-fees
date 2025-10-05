@@ -1,10 +1,13 @@
 import os
+import re
 from distutils.command.build import build
 
 from django.core import management
 from setuptools import find_packages, setup
 
-from pretix_payment_fees import __version__
+# Read version without importing the module to avoid circular imports
+with open(os.path.join(os.path.dirname(__file__), "pretix_payment_fees", "__init__.py")) as f:
+    __version__ = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
 
 
 try:

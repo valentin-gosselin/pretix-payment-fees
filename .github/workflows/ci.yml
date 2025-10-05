@@ -120,6 +120,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install django>=3.2
 
+    - name: Install gettext
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gettext
+
     - name: Check PO files
       run: |
         for lang in de es fr it nl pl pt; do

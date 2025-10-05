@@ -66,9 +66,7 @@ class CSVRenderer:
         writer.writerow(["Nombre de paiements", totals["global"]["count"]])
         writer.writerow(["Montant Brut Total", str(totals["global"]["montant_brut"])])
         writer.writerow([str(_("Total VAT Collected")), str(totals["global"]["tva_collectee"])])
-        writer.writerow(
-            [str(_("Total PSP Fees")), str(totals["global"]["frais_psp_total"])]
-        )
+        writer.writerow([str(_("Total PSP Fees")), str(totals["global"]["frais_psp_total"])])
         writer.writerow(["Montant Net Total", str(totals["global"]["montant_net"])])
 
         # Ligne vide

@@ -4,6 +4,7 @@ Rapport comptable PDF avec frais PSP - Version simplifiée.
 Hérite du rapport comptable natif de Pretix et ajoute uniquement
 une section "Frais PSP" après la section "Paiements".
 """
+
 import copy
 from collections import defaultdict
 from decimal import Decimal
@@ -31,6 +32,7 @@ class AccountingReportPSPExporter(ReportExporter):
     - Section "Frais PSP" avec détail par provider
     - Inclusion des frais dans "Éléments ouverts"
     """
+
     identifier = "accounting_report_psp"
     verbose_name = gettext_lazy("Rapport comptable avec frais bancaires")
     description = gettext_lazy(
@@ -91,7 +93,9 @@ class AccountingReportPSPExporter(ReportExporter):
                 ),
             ]
 
-            currencies = list(sorted(set(self.events.values_list('currency', flat=True).distinct())))
+            currencies = list(
+                sorted(set(self.events.values_list("currency", flat=True).distinct()))
+            )
 
             # Section Commandes (Orders)
             for c in currencies:
@@ -138,10 +142,7 @@ class AccountingReportPSPExporter(ReportExporter):
                 ]
 
             # Gift cards (si organizer complet)
-            if (
-                self.is_multievent
-                and self.events.count() == self.organizer.events.count()
-            ):
+            if self.is_multievent and self.events.count() == self.organizer.events.count():
                 for c in currencies:
                     c_head = f" [{c}]" if len(currencies) > 1 else ""
                     story += [
@@ -196,17 +197,23 @@ class AccountingReportPSPExporter(ReportExporter):
         ]
 
         # Récupérer les frais PSP
-        fees_qs = OrderFee.objects.filter(
-            order__event__in=self.events,
-            order__event__currency=currency,
-            fee_type=OrderFee.FEE_TYPE_PAYMENT,
-            canceled=False,
-        ).select_related('order').prefetch_related('order__payments')
+        fees_qs = (
+            OrderFee.objects.filter(
+                order__event__in=self.events,
+                order__event__currency=currency,
+                fee_type=OrderFee.FEE_TYPE_PAYMENT,
+                canceled=False,
+            )
+            .select_related("order")
+            .prefetch_related("order__payments")
+        )
 
         # Appliquer les filtres de dates
         if form_data["date_range"]:
             from django.utils.timezone import now
-            from pretix.base.timeframes import resolve_timeframe_to_datetime_start_inclusive_end_exclusive
+            from pretix.base.timeframes import (
+                resolve_timeframe_to_datetime_start_inclusive_end_exclusive,
+            )
 
             df_start, df_end = resolve_timeframe_to_datetime_start_inclusive_end_exclusive(
                 now(), form_data["date_range"], self.timezone
@@ -220,18 +227,20 @@ class AccountingReportPSPExporter(ReportExporter):
             fees_qs = fees_qs.filter(order__testmode=False)
 
         # Grouper par provider
-        fees_by_provider = defaultdict(lambda: {'count': 0, 'total': Decimal('0')})
+        fees_by_provider = defaultdict(lambda: {"count": 0, "total": Decimal("0")})
 
         for fee in fees_qs:
             # Trouver le payment provider associé
-            payment = fee.order.payments.filter(
-                state=OrderPayment.PAYMENT_STATE_CONFIRMED
-            ).order_by('-payment_date').first()
+            payment = (
+                fee.order.payments.filter(state=OrderPayment.PAYMENT_STATE_CONFIRMED)
+                .order_by("-payment_date")
+                .first()
+            )
 
             if payment:
                 provider = payment.provider
-                fees_by_provider[provider]['count'] += 1
-                fees_by_provider[provider]['total'] += fee.value
+                fees_by_provider[provider]["count"] += 1
+                fees_by_provider[provider]["total"] += fee.value
 
         # Récupérer les noms des providers
         provider_names = dict(get_all_payment_providers())
@@ -242,21 +251,25 @@ class AccountingReportPSPExporter(ReportExporter):
 
         for provider in providers_sorted:
             data = fees_by_provider[provider]
-            tdata.append([
-                Paragraph(provider_names.get(provider, provider), tstyle),
-                Paragraph(str(data['count']), tstyle_right),
-                Paragraph(money_filter(data['total'], currency), tstyle_right),
-            ])
+            tdata.append(
+                [
+                    Paragraph(provider_names.get(provider, provider), tstyle),
+                    Paragraph(str(data["count"]), tstyle_right),
+                    Paragraph(money_filter(data["total"], currency), tstyle_right),
+                ]
+            )
 
         # Ligne totale
-        total_count = sum(f['count'] for f in fees_by_provider.values())
-        total_fees = sum(f['total'] for f in fees_by_provider.values())
+        total_count = sum(f["count"] for f in fees_by_provider.values())
+        total_fees = sum(f["total"] for f in fees_by_provider.values())
 
-        tdata.append([
-            FontFallbackParagraph(_("Total frais bancaires"), tstyle_bold),
-            Paragraph(str(total_count), tstyle_bold_right),
-            Paragraph(money_filter(total_fees, currency), tstyle_bold_right),
-        ])
+        tdata.append(
+            [
+                FontFallbackParagraph(_("Total frais bancaires"), tstyle_bold),
+                Paragraph(str(total_count), tstyle_bold_right),
+                Paragraph(money_filter(total_fees, currency), tstyle_bold_right),
+            ]
+        )
 
         # Style du tableau
         tstyledata += [
@@ -287,7 +300,9 @@ class AccountingReportPSPExporter(ReportExporter):
         from django.db.models import F
         from django.utils.formats import date_format
         from django.utils.timezone import now
-        from pretix.base.timeframes import resolve_timeframe_to_datetime_start_inclusive_end_exclusive
+        from pretix.base.timeframes import (
+            resolve_timeframe_to_datetime_start_inclusive_end_exclusive,
+        )
 
         tstyle = copy.copy(self.get_style())
         tstyle.fontSize = 8
@@ -323,34 +338,42 @@ class AccountingReportPSPExporter(ReportExporter):
 
             open_before = tx_before - p_before + r_before
 
-            tdata.append([
-                FontFallbackParagraph(
-                    _("Pending payments at {datetime}").format(
-                        datetime=date_format(
-                            df_start - datetime.timedelta.resolution,
-                            "SHORT_DATETIME_FORMAT",
-                        )
+            tdata.append(
+                [
+                    FontFallbackParagraph(
+                        _("Pending payments at {datetime}").format(
+                            datetime=date_format(
+                                df_start - datetime.timedelta.resolution,
+                                "SHORT_DATETIME_FORMAT",
+                            )
+                        ),
+                        tstyle,
                     ),
-                    tstyle,
-                ),
-                Paragraph(money_filter(open_before, currency), tstyle_right),
-            ])
+                    Paragraph(money_filter(open_before, currency), tstyle_right),
+                ]
+            )
 
         # Transactions de la période
         tx_total = self._transaction_qs(form_data, currency).aggregate(
             s=Sum(F("count") * F("price"))
         )["s"] or Decimal("0.00")
-        tdata.append([
-            FontFallbackParagraph(_("Orders"), tstyle),
-            Paragraph("+" + money_filter(tx_total, currency), tstyle_right),
-        ])
+        tdata.append(
+            [
+                FontFallbackParagraph(_("Orders"), tstyle),
+                Paragraph("+" + money_filter(tx_total, currency), tstyle_right),
+            ]
+        )
 
         # Paiements avec sous-lignes pour les frais
-        p_total = self._payment_qs(form_data, currency).aggregate(s=Sum("amount"))["s"] or Decimal("0.00")
-        tdata.append([
-            FontFallbackParagraph(_("Payments"), tstyle),
-            Paragraph("-" + money_filter(p_total, currency), tstyle_right),
-        ])
+        p_total = self._payment_qs(form_data, currency).aggregate(s=Sum("amount"))["s"] or Decimal(
+            "0.00"
+        )
+        tdata.append(
+            [
+                FontFallbackParagraph(_("Payments"), tstyle),
+                Paragraph("-" + money_filter(p_total, currency), tstyle_right),
+            ]
+        )
 
         # Calculer les frais PSP de la période
         fees_total = OrderFee.objects.filter(
@@ -378,24 +401,32 @@ class AccountingReportPSPExporter(ReportExporter):
             tstyle_indent.leftIndent = 15
 
             # Sous-ligne : Frais bancaires
-            tdata.append([
-                FontFallbackParagraph("  - " + _("Bank fees"), tstyle_indent),
-                Paragraph("-" + money_filter(fees_total, currency), tstyle_right),
-            ])
+            tdata.append(
+                [
+                    FontFallbackParagraph("  - " + _("Bank fees"), tstyle_indent),
+                    Paragraph("-" + money_filter(fees_total, currency), tstyle_right),
+                ]
+            )
 
             # Sous-ligne : Total net perçu
             net_received = p_total - fees_total
-            tdata.append([
-                FontFallbackParagraph("  - " + _("Total net received"), tstyle_indent),
-                Paragraph("-" + money_filter(net_received, currency), tstyle_right),
-            ])
+            tdata.append(
+                [
+                    FontFallbackParagraph("  - " + _("Total net received"), tstyle_indent),
+                    Paragraph("-" + money_filter(net_received, currency), tstyle_right),
+                ]
+            )
 
         # Remboursements
-        r_total = self._refund_qs(form_data, currency).aggregate(s=Sum("amount"))["s"] or Decimal("0.00")
-        tdata.append([
-            FontFallbackParagraph(_("Refunds"), tstyle),
-            Paragraph("+" + money_filter(r_total, currency), tstyle_right),
-        ])
+        r_total = self._refund_qs(form_data, currency).aggregate(s=Sum("amount"))["s"] or Decimal(
+            "0.00"
+        )
+        tdata.append(
+            [
+                FontFallbackParagraph(_("Refunds"), tstyle),
+                Paragraph("+" + money_filter(r_total, currency), tstyle_right),
+            ]
+        )
 
         # Total final (sans soustraire les frais)
         if df_start:
@@ -403,15 +434,17 @@ class AccountingReportPSPExporter(ReportExporter):
         else:
             final_balance = tx_total - p_total + r_total
 
-        tdata.append([
-            FontFallbackParagraph(
-                _("Pending payments at {datetime}").format(
-                    datetime=date_format(now(), "SHORT_DATETIME_FORMAT")
+        tdata.append(
+            [
+                FontFallbackParagraph(
+                    _("Pending payments at {datetime}").format(
+                        datetime=date_format(now(), "SHORT_DATETIME_FORMAT")
+                    ),
+                    tstyle_bold,
                 ),
-                tstyle_bold,
-            ),
-            Paragraph("=" + money_filter(final_balance, currency), tstyle_bold_right),
-        ])
+                Paragraph("=" + money_filter(final_balance, currency), tstyle_bold_right),
+            ]
+        )
 
         tstyledata += [
             ("LINEABOVE", (0, -1), (-1, -1), 0.5, colors.black),

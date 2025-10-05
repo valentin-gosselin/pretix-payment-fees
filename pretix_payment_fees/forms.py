@@ -61,40 +61,30 @@ class PSPConfigForm(forms.ModelForm):
         """Validate Mollie API key."""
         key = self.cleaned_data.get("mollie_api_key", "").strip()
         if self.cleaned_data.get("mollie_enabled") and not key:
-            raise forms.ValidationError(
-                _("Mollie API key is required if Mollie is enabled.")
-            )
+            raise forms.ValidationError(_("Mollie API key is required if Mollie is enabled."))
         if key and not (key.startswith("live_") or key.startswith("test_")):
-            raise forms.ValidationError(
-                _("Mollie API key must start with 'live_' or 'test_'.")
-            )
+            raise forms.ValidationError(_("Mollie API key must start with 'live_' or 'test_'."))
         return key
 
     def clean_mollie_client_id(self):
         """Validate Mollie Connect Client ID."""
         client_id = self.cleaned_data.get("mollie_client_id", "").strip()
         if client_id and not client_id.startswith("app_"):
-            raise forms.ValidationError(
-                _("Mollie Connect Client ID must start with 'app_'.")
-            )
+            raise forms.ValidationError(_("Mollie Connect Client ID must start with 'app_'."))
         return client_id
 
     def clean_sumup_api_key(self):
         """Validate SumUp API key."""
         key = self.cleaned_data.get("sumup_api_key", "").strip()
         if self.cleaned_data.get("sumup_enabled") and not key:
-            raise forms.ValidationError(
-                _("SumUp API key is required if SumUp is enabled.")
-            )
+            raise forms.ValidationError(_("SumUp API key is required if SumUp is enabled."))
         return key
 
     def clean_cache_duration(self):
         """Validate cache duration."""
         duration = self.cleaned_data.get("cache_duration")
         if duration and (duration < 60 or duration > 86400):
-            raise forms.ValidationError(
-                _("Cache duration must be between 60 and 86400 seconds.")
-            )
+            raise forms.ValidationError(_("Cache duration must be between 60 and 86400 seconds."))
         return duration
 
 
@@ -177,15 +167,10 @@ class PSPSyncForm(forms.Form):
 
         # Check that date_from < date_to if both are provided
         if date_from and date_to and date_from > date_to:
-            raise forms.ValidationError(
-                _("Start date must be before end date")
-            )
+            raise forms.ValidationError(_("Start date must be before end date"))
 
         # If days_back is provided, ignore date_from/date_to
         if days_back and (date_from or date_to):
-            self.add_error(
-                "days_back",
-                _("Cannot be used with date_from/date_to")
-            )
+            self.add_error("days_back", _("Cannot be used with date_from/date_to"))
 
         return cleaned_data

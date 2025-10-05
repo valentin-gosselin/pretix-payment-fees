@@ -1,6 +1,7 @@
 """
 Vues pour gérer l'authentification OAuth avec Mollie Connect.
 """
+
 import logging
 import json
 import base64
@@ -36,13 +37,11 @@ class MollieConnectView(OrganizerPermissionRequiredMixin, View):
             psp_config = PSPConfig.objects.get(organizer=organizer)
         except PSPConfig.DoesNotExist:
             messages.error(
-                request,
-                _("PSP configuration not found. Please configure your API keys first.")
+                request, _("PSP configuration not found. Please configure your API keys first.")
             )
             return redirect(
                 reverse(
-                    "plugins:pretix_payment_fees:settings",
-                    kwargs={"organizer": organizer.slug}
+                    "plugins:pretix_payment_fees:settings", kwargs={"organizer": organizer.slug}
                 )
             )
 
@@ -50,12 +49,13 @@ class MollieConnectView(OrganizerPermissionRequiredMixin, View):
         if not psp_config.mollie_client_id or not psp_config.mollie_client_secret:
             messages.error(
                 request,
-                _("Mollie Connect Client ID and Secret required. Please configure them in settings.")
+                _(
+                    "Mollie Connect Client ID and Secret required. Please configure them in settings."
+                ),
             )
             return redirect(
                 reverse(
-                    "plugins:pretix_payment_fees:settings",
-                    kwargs={"organizer": organizer.slug}
+                    "plugins:pretix_payment_fees:settings", kwargs={"organizer": organizer.slug}
                 )
             )
 
@@ -78,7 +78,9 @@ class MollieConnectView(OrganizerPermissionRequiredMixin, View):
         host = request.get_host()
         redirect_uri = f"{scheme}://{host}/_export_frais/mollie/callback/"
 
-        logger.info(f"Initiating Mollie OAuth for organizer {organizer.slug}, redirect_uri={redirect_uri}")
+        logger.info(
+            f"Initiating Mollie OAuth for organizer {organizer.slug}, redirect_uri={redirect_uri}"
+        )
 
         # Créer le client OAuth et générer l'URL d'autorisation
         oauth_client = MollieOAuthClient(
@@ -115,17 +117,14 @@ class MollieCallbackView(View):
             logger.error(f"OAuth error: {error} - {error_description}")
             messages.error(
                 request,
-                _("Mollie authorization error: {error}").format(error=error_description or error)
+                _("Mollie authorization error: {error}").format(error=error_description or error),
             )
             # Rediriger vers la page d'accueil du control panel
             return redirect("/control/")
 
         if not code or not state:
             logger.error("Missing code or state in OAuth callback")
-            messages.error(
-                request,
-                _("Missing OAuth parameters")
-            )
+            messages.error(request, _("Missing OAuth parameters"))
             return redirect("/control/")
 
         # Décoder le state pour récupérer organizer_slug et CSRF
@@ -138,10 +137,7 @@ class MollieCallbackView(View):
             session_key = f"mollie_oauth_state_{csrf_token}"
             if not request.session.get(session_key):
                 logger.error(f"Invalid CSRF token in OAuth callback: {csrf_token}")
-                messages.error(
-                    request,
-                    _("Invalid CSRF token. Please try again.")
-                )
+                messages.error(request, _("Invalid CSRF token. Please try again."))
                 return redirect("/control/")
 
             # Supprimer le token de la session
@@ -150,10 +146,7 @@ class MollieCallbackView(View):
 
         except Exception as e:
             logger.error(f"Error decoding OAuth state: {e}", exc_info=True)
-            messages.error(
-                request,
-                _("Error processing OAuth response")
-            )
+            messages.error(request, _("Error processing OAuth response"))
             return redirect("/control/")
 
         # Récupérer l'organisateur et sa config
@@ -162,10 +155,7 @@ class MollieCallbackView(View):
             psp_config = PSPConfig.objects.get(organizer=organizer)
         except (Organizer.DoesNotExist, PSPConfig.DoesNotExist) as e:
             logger.error(f"Organizer or PSPConfig not found: {e}")
-            messages.error(
-                request,
-                _("Configuration not found")
-            )
+            messages.error(request, _("Configuration not found"))
             return redirect("/control/")
 
         # Échanger le code contre un access token
@@ -196,22 +186,16 @@ class MollieCallbackView(View):
             logger.info(f"Successfully connected Mollie OAuth for organizer {organizer.slug}")
             messages.success(
                 request,
-                _("Successfully connected to Mollie Connect! Real PSP fees are now available.")
+                _("Successfully connected to Mollie Connect! Real PSP fees are now available."),
             )
 
         except Exception as e:
             logger.error(f"Error exchanging OAuth code for token: {e}", exc_info=True)
-            messages.error(
-                request,
-                _("Error connecting to Mollie: {error}").format(error=str(e))
-            )
+            messages.error(request, _("Error connecting to Mollie: {error}").format(error=str(e)))
 
         # Rediriger vers la page de configuration
         return redirect(
-            reverse(
-                "plugins:pretix_payment_fees:settings",
-                kwargs={"organizer": organizer.slug}
-            )
+            reverse("plugins:pretix_payment_fees:settings", kwargs={"organizer": organizer.slug})
         )
 
 
@@ -227,26 +211,18 @@ class MollieDisconnectView(OrganizerPermissionRequiredMixin, View):
         try:
             psp_config = PSPConfig.objects.get(organizer=organizer)
         except PSPConfig.DoesNotExist:
-            messages.error(
-                request,
-                _("PSP configuration not found")
-            )
+            messages.error(request, _("PSP configuration not found"))
             return redirect(
                 reverse(
-                    "plugins:pretix_payment_fees:settings",
-                    kwargs={"organizer": organizer.slug}
+                    "plugins:pretix_payment_fees:settings", kwargs={"organizer": organizer.slug}
                 )
             )
 
         if not psp_config.mollie_oauth_connected:
-            messages.info(
-                request,
-                _("Mollie Connect is not connected")
-            )
+            messages.info(request, _("Mollie Connect is not connected"))
             return redirect(
                 reverse(
-                    "plugins:pretix_payment_fees:settings",
-                    kwargs={"organizer": organizer.slug}
+                    "plugins:pretix_payment_fees:settings", kwargs={"organizer": organizer.slug}
                 )
             )
 
@@ -268,14 +244,8 @@ class MollieDisconnectView(OrganizerPermissionRequiredMixin, View):
         psp_config.save()
 
         logger.info(f"Disconnected Mollie OAuth for organizer {organizer.slug}")
-        messages.success(
-            request,
-            _("Successfully disconnected from Mollie Connect")
-        )
+        messages.success(request, _("Successfully disconnected from Mollie Connect"))
 
         return redirect(
-            reverse(
-                "plugins:pretix_payment_fees:settings",
-                kwargs={"organizer": organizer.slug}
-            )
+            reverse("plugins:pretix_payment_fees:settings", kwargs={"organizer": organizer.slug})
         )

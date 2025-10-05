@@ -41,13 +41,9 @@ class ExcelRenderer:
         ws.title = "Export Comptable"
 
         # Styles
-        header_fill = PatternFill(
-            start_color="366092", end_color="366092", fill_type="solid"
-        )
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
         header_font = Font(color="FFFFFF", bold=True)
-        total_fill = PatternFill(
-            start_color="D9E1F2", end_color="D9E1F2", fill_type="solid"
-        )
+        total_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
         total_font = Font(bold=True)
 
         # En-têtes
@@ -90,21 +86,15 @@ class ExcelRenderer:
 
         current_row += 1
         ws.cell(row=current_row, column=1, value="Montant Brut Total")
-        ws.cell(
-            row=current_row, column=2, value=float(totals["global"]["montant_brut"])
-        )
+        ws.cell(row=current_row, column=2, value=float(totals["global"]["montant_brut"]))
 
         current_row += 1
         ws.cell(row=current_row, column=1, value=str(_("Total VAT Collected")))
-        ws.cell(
-            row=current_row, column=2, value=float(totals["global"]["tva_collectee"])
-        )
+        ws.cell(row=current_row, column=2, value=float(totals["global"]["tva_collectee"]))
 
         current_row += 1
         ws.cell(row=current_row, column=1, value=str(_("Total PSP Fees")))
-        ws.cell(
-            row=current_row, column=2, value=float(totals["global"]["frais_psp_total"])
-        )
+        ws.cell(row=current_row, column=2, value=float(totals["global"]["frais_psp_total"]))
 
         current_row += 1
         ws.cell(row=current_row, column=1, value="Montant Net Total")

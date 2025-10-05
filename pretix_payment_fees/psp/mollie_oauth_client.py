@@ -4,6 +4,7 @@ Client OAuth pour Mollie Connect.
 Gère l'authentification OAuth 2.0 avec Mollie pour accéder aux APIs
 nécessitant des permissions étendues (Balances, Settlements).
 """
+
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -43,7 +44,12 @@ class MollieOAuthClient:
         self.client_secret = client_secret
         self.access_token = access_token
 
-    def get_authorization_url(self, redirect_uri: str, state: str, scope: str = "payments.read balances.read settlements.read") -> str:
+    def get_authorization_url(
+        self,
+        redirect_uri: str,
+        state: str,
+        scope: str = "payments.read balances.read settlements.read",
+    ) -> str:
         """
         Génère l'URL d'autorisation OAuth.
 
@@ -99,7 +105,9 @@ class MollieOAuthClient:
             response.raise_for_status()
 
             token_data = response.json()
-            logger.info(f"Successfully obtained access token (expires in {token_data.get('expires_in')}s)")
+            logger.info(
+                f"Successfully obtained access token (expires in {token_data.get('expires_in')}s)"
+            )
 
             return token_data
 
@@ -138,7 +146,9 @@ class MollieOAuthClient:
             response.raise_for_status()
 
             token_data = response.json()
-            logger.info(f"Successfully refreshed access token (expires in {token_data.get('expires_in')}s)")
+            logger.info(
+                f"Successfully refreshed access token (expires in {token_data.get('expires_in')}s)"
+            )
 
             return token_data
 
@@ -185,7 +195,9 @@ class MollieOAuthClient:
             logger.error(f"Unexpected error during token revocation: {e}", exc_info=True)
             return False
 
-    def get_balance_transactions(self, balance_id: str = "primary", payment_id: str = None, limit: int = 250) -> Optional[Dict]:
+    def get_balance_transactions(
+        self, balance_id: str = "primary", payment_id: str = None, limit: int = 250
+    ) -> Optional[Dict]:
         """
         Récupère les transactions d'un balance (pour obtenir les frais réels).
 
@@ -277,7 +289,9 @@ class MollieOAuthClient:
             logger.error(f"Unexpected error fetching settlement: {e}", exc_info=True)
             return None
 
-    def get_payment_fees_from_settlement(self, payment_id: str, settlement_id: str) -> Optional[Dict]:
+    def get_payment_fees_from_settlement(
+        self, payment_id: str, settlement_id: str
+    ) -> Optional[Dict]:
         """
         Récupère les frais réels d'un paiement depuis son settlement via OAuth.
 
@@ -361,7 +375,9 @@ class MollieOAuthClient:
         Returns:
             Dict avec amount_fee, currency, fee_details ou None
         """
-        logger.info(f"Fetching REAL fees for payment {payment_id} from Balance Transactions deductions")
+        logger.info(
+            f"Fetching REAL fees for payment {payment_id} from Balance Transactions deductions"
+        )
 
         if not self.access_token:
             logger.error("No access token available for balance transactions")
@@ -379,26 +395,26 @@ class MollieOAuthClient:
             response.raise_for_status()
 
             data = response.json()
-            transactions = data.get('_embedded', {}).get('balance_transactions', [])
+            transactions = data.get("_embedded", {}).get("balance_transactions", [])
 
             logger.debug(f"Fetched {len(transactions)} balance transactions")
 
             # Chercher la transaction correspondant à ce paiement
             for tx in transactions:
-                context = tx.get('context', {})
-                tx_payment_id = context.get('paymentId', '')
+                context = tx.get("context", {})
+                tx_payment_id = context.get("paymentId", "")
 
-                if tx_payment_id == payment_id and tx.get('type') == 'payment':
+                if tx_payment_id == payment_id and tx.get("type") == "payment":
                     # TROUVÉ ! Extraire les frais depuis deductions
-                    deductions = tx.get('deductions', {})
-                    deductions_value = deductions.get('value', '0.00')
-                    currency = deductions.get('currency', 'EUR')
+                    deductions = tx.get("deductions", {})
+                    deductions_value = deductions.get("value", "0.00")
+                    currency = deductions.get("currency", "EUR")
 
                     # deductions est négatif (ex: -4.49), on prend la valeur absolue
                     fee_amount = abs(Decimal(deductions_value))
 
-                    initial_amt = tx.get('initialAmount', {}).get('value', '0.00')
-                    result_amt = tx.get('resultAmount', {}).get('value', '0.00')
+                    initial_amt = tx.get("initialAmount", {}).get("value", "0.00")
+                    result_amt = tx.get("resultAmount", {}).get("value", "0.00")
 
                     logger.info(
                         f"✓ VRAIS FRAIS trouvés pour {payment_id}: "
@@ -450,7 +466,9 @@ class MollieOAuthClient:
         buffer = timedelta(minutes=5)
         return now() < (expires_at - buffer)
 
-    def get_settlement_rates(self, settlement_id: str, organizer) -> Optional[Dict[str, Dict[str, str]]]:
+    def get_settlement_rates(
+        self, settlement_id: str, organizer
+    ) -> Optional[Dict[str, Dict[str, str]]]:
         """
         Récupère les rates de frais d'un settlement.
 
@@ -476,8 +494,7 @@ class MollieOAuthClient:
         # 1. Vérifier le cache
         try:
             cached = SettlementRateCache.objects.get(
-                settlement_id=settlement_id,
-                organizer=organizer
+                settlement_id=settlement_id, organizer=organizer
             )
             logger.info(f"✓ Settlement rates trouvés en cache: {settlement_id}")
             return cached.rates_data
@@ -492,9 +509,9 @@ class MollieOAuthClient:
 
         # 3. Parser les rates depuis periods.{year}.{month}.costs
         rates_dict = {}
-        periods = settlement_data.get('periods', {})
+        periods = settlement_data.get("periods", {})
 
-        settled_at = settlement_data.get('settledAt')
+        settled_at = settlement_data.get("settledAt")
         period_year = None
         period_month = None
 
@@ -511,22 +528,22 @@ class MollieOAuthClient:
                 period_month = int(month_str)
 
                 # Extraire les costs
-                costs = month_data.get('costs', [])
+                costs = month_data.get("costs", [])
                 for cost_entry in costs:
-                    description = cost_entry.get('description', '')
-                    rate_data = cost_entry.get('rate', {})
+                    description = cost_entry.get("description", "")
+                    rate_data = cost_entry.get("rate", {})
 
                     if not rate_data:
                         continue
 
                     # Extraire fixed et percentage
-                    fixed_obj = rate_data.get('fixed', {})
-                    fixed_value = fixed_obj.get('value', '0.00')
-                    percentage = rate_data.get('percentage', '0.00')
+                    fixed_obj = rate_data.get("fixed", {})
+                    fixed_value = fixed_obj.get("value", "0.00")
+                    percentage = rate_data.get("percentage", "0.00")
 
                     rates_dict[description] = {
-                        'fixed': str(fixed_value),
-                        'percentage': str(percentage)
+                        "fixed": str(fixed_value),
+                        "percentage": str(percentage),
                     }
 
                     logger.debug(
@@ -548,7 +565,7 @@ class MollieOAuthClient:
                 period_year=period_year or 2025,
                 period_month=period_month or 1,
                 rates_data=rates_dict,
-                settled_at=settled_at
+                settled_at=settled_at,
             )
             logger.info(f"✓ Rates sauvegardés en cache pour {settlement_id}")
         except Exception as e:
@@ -558,14 +575,16 @@ class MollieOAuthClient:
         try:
             psp_config = PSPConfig.objects.get(organizer=organizer)
             psp_config.last_known_settlement_rates = rates_dict
-            psp_config.save(update_fields=['last_known_settlement_rates'])
+            psp_config.save(update_fields=["last_known_settlement_rates"])
             logger.info(f"✓ last_known_settlement_rates mis à jour")
         except PSPConfig.DoesNotExist:
             logger.warning(f"PSPConfig non trouvé pour mettre à jour last_known_settlement_rates")
 
         return rates_dict
 
-    def calculate_exact_fee(self, payment_data: Dict, rates: Dict[str, Dict[str, str]]) -> Optional[Decimal]:
+    def calculate_exact_fee(
+        self, payment_data: Dict, rates: Dict[str, Dict[str, str]]
+    ) -> Optional[Decimal]:
         """
         Calcule le frais EXACT d'un paiement en utilisant les rates du settlement.
 
@@ -580,13 +599,13 @@ class MollieOAuthClient:
             Montant exact des frais en Decimal, ou None si impossible de calculer
         """
         # 1. Extraire les infos du paiement
-        amount_obj = payment_data.get('amount', {})
-        amount_value = amount_obj.get('value', '0.00')
+        amount_obj = payment_data.get("amount", {})
+        amount_value = amount_obj.get("value", "0.00")
         amount = Decimal(amount_value)
 
-        details = payment_data.get('details', {})
-        fee_region = details.get('feeRegion')
-        card_label = details.get('cardLabel', '')
+        details = payment_data.get("details", {})
+        fee_region = details.get("feeRegion")
+        card_label = details.get("cardLabel", "")
 
         logger.debug(
             f"Calcul fee pour payment: amount={amount}, "
@@ -600,10 +619,10 @@ class MollieOAuthClient:
         # - "other" / null → "Credit card - Other"
 
         fee_region_mapping = {
-            'carte-bancaire': 'Credit card - Carte Bancaire',
-            'intra-eu': 'Credit card - Domestic consumer cards',
-            'eu-card': 'Credit card - Domestic consumer cards',
-            'other': 'Credit card - Other',
+            "carte-bancaire": "Credit card - Carte Bancaire",
+            "intra-eu": "Credit card - Domestic consumer cards",
+            "eu-card": "Credit card - Domestic consumer cards",
+            "other": "Credit card - Other",
         }
 
         rate_description = fee_region_mapping.get(fee_region)
@@ -614,12 +633,12 @@ class MollieOAuthClient:
                 f"Tentative de recherche par cardLabel ou fallback."
             )
             # Fallback: chercher "Carte Bancaire" dans rates
-            if 'Credit card - Carte Bancaire' in rates:
-                rate_description = 'Credit card - Carte Bancaire'
+            if "Credit card - Carte Bancaire" in rates:
+                rate_description = "Credit card - Carte Bancaire"
             else:
                 # Prendre le premier rate disponible (en excluant Rounding differences)
                 for key in rates.keys():
-                    if 'Rounding' not in key:
+                    if "Rounding" not in key:
                         rate_description = key
                         break
                 if not rate_description:
@@ -633,7 +652,7 @@ class MollieOAuthClient:
             return None
 
         # FILTRER les "Rounding differences" - ce ne sont pas de vrais paiements clients
-        if 'Rounding' in rate_description:
+        if "Rounding" in rate_description:
             logger.info(
                 f"⊗ Paiement ignoré: {rate_description} (ajustement comptable Mollie, pas un vrai paiement client)"
             )
@@ -641,15 +660,15 @@ class MollieOAuthClient:
 
         # 3. Extraire les rates
         rate_data = rates[rate_description]
-        fixed_str = rate_data.get('fixed', '0.00')
-        percentage_str = rate_data.get('percentage', '0.00')
+        fixed_str = rate_data.get("fixed", "0.00")
+        percentage_str = rate_data.get("percentage", "0.00")
 
         fixed = Decimal(fixed_str)
         percentage = Decimal(percentage_str)
 
         # 4. Calculer le frais
         # fee = fixed + (amount × percentage / 100)
-        fee = fixed + (amount * percentage / Decimal('100'))
+        fee = fixed + (amount * percentage / Decimal("100"))
 
         logger.info(
             f"✓ Fee calculé: {rate_description} → "

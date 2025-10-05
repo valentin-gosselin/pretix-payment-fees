@@ -281,9 +281,7 @@ class PDFRenderer:
 
     def _calculate_controle(self, totals):
         """Calcule les valeurs de contrôle."""
-        brut_moins_tva = (
-            totals["global"]["montant_brut"] - totals["global"]["tva_collectee"]
-        )
+        brut_moins_tva = totals["global"]["montant_brut"] - totals["global"]["tva_collectee"]
         final = brut_moins_tva - totals["global"]["frais_psp_total"]
         difference = abs(final - totals["global"]["montant_net"])
 

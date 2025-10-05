@@ -177,13 +177,11 @@ class SumUpClient:
     def _make_request(self, method, url, params=None, json=None, retry=0):
         """Effectue une requête avec retry/backoff."""
         try:
-            response = self.session.request(
-                method, url, params=params, json=json, timeout=30
-            )
+            response = self.session.request(method, url, params=params, json=json, timeout=30)
 
             if response.status_code == 429:  # Rate limit
                 if retry < self.MAX_RETRIES:
-                    wait_time = self.BACKOFF_FACTOR ** retry
+                    wait_time = self.BACKOFF_FACTOR**retry
                     logger.warning(
                         f"Rate limited by SumUp, waiting {wait_time}s (retry {retry + 1}/{self.MAX_RETRIES})"
                     )
@@ -203,7 +201,7 @@ class SumUpClient:
             else:
                 logger.error(f"SumUp API HTTP error: {e}", exc_info=True)
                 if retry < self.MAX_RETRIES:
-                    wait_time = self.BACKOFF_FACTOR ** retry
+                    wait_time = self.BACKOFF_FACTOR**retry
                     time.sleep(wait_time)
                     return self._make_request(method, url, params, json, retry + 1)
                 return None
@@ -228,11 +226,11 @@ class SumUpClient:
             if cached.modified > now() - timedelta(hours=1):
                 return {
                     "amount_fee": cached.amount_fee,
-                    "fee_details_text": ", ".join(
-                        [f"{k}: {v}" for k, v in cached.fee_details.items()]
-                    )
-                    if cached.fee_details
-                    else "",
+                    "fee_details_text": (
+                        ", ".join([f"{k}: {v}" for k, v in cached.fee_details.items()])
+                        if cached.fee_details
+                        else ""
+                    ),
                     "settlement_id": "",
                     "status": cached.status,
                     "amount_gross": cached.amount_gross,
@@ -257,7 +255,9 @@ class SumUpClient:
             # Extraire la date de transaction
             timestamp_str = transaction_data.get("timestamp", "")
             if timestamp_str:
-                transaction_date = make_aware(datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")))
+                transaction_date = make_aware(
+                    datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                )
             else:
                 transaction_date = now()
 

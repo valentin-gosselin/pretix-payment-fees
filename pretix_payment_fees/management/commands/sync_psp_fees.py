@@ -7,6 +7,7 @@ Usage:
     python manage.py sync_psp_fees --organizer=myorg --days=7 --force
     python manage.py sync_psp_fees --organizer=myorg --dry-run
 """
+
 import logging
 from datetime import datetime
 
@@ -87,13 +88,9 @@ class Command(BaseCommand):
                 date_from = parse_datetime(date_from_str)
                 if not date_from:
                     # Si parse_datetime échoue, essayer juste la date
-                    date_from = make_aware(
-                        datetime.strptime(date_from_str, "%Y-%m-%d")
-                    )
+                    date_from = make_aware(datetime.strptime(date_from_str, "%Y-%m-%d"))
             except ValueError:
-                raise CommandError(
-                    f"Format de date invalide pour --from: {date_from_str}"
-                )
+                raise CommandError(f"Format de date invalide pour --from: {date_from_str}")
 
         if date_to_str:
             try:
@@ -101,9 +98,7 @@ class Command(BaseCommand):
                 if not date_to:
                     date_to = make_aware(datetime.strptime(date_to_str, "%Y-%m-%d"))
             except ValueError:
-                raise CommandError(
-                    f"Format de date invalide pour --to: {date_to_str}"
-                )
+                raise CommandError(f"Format de date invalide pour --to: {date_to_str}")
 
         # Initialiser le service
         sync_service = PSPSyncService(organizer=organizer)
@@ -116,15 +111,11 @@ class Command(BaseCommand):
             self.stdout.write(f"Événement: {event_slug}")
 
         if dry_run:
-            self.stdout.write(
-                self.style.WARNING("MODE DRY-RUN: Aucune modification ne sera faite")
-            )
+            self.stdout.write(self.style.WARNING("MODE DRY-RUN: Aucune modification ne sera faite"))
 
         if force:
             self.stdout.write(
-                self.style.WARNING(
-                    "MODE FORCE: Resynchronisation des paiements déjà synchronisés"
-                )
+                self.style.WARNING("MODE FORCE: Resynchronisation des paiements déjà synchronisés")
             )
 
         # Synchroniser
@@ -167,49 +158,29 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Résultats de la synchronisation:"))
             self.stdout.write(f"  Total des paiements traités: {result.total_payments}")
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"  Paiements synchronisés: {result.synced_payments}"
-                )
+                self.style.SUCCESS(f"  Paiements synchronisés: {result.synced_payments}")
             )
-            self.stdout.write(
-                self.style.WARNING(f"  Skipped payments: {result.skipped_payments}")
-            )
+            self.stdout.write(self.style.WARNING(f"  Skipped payments: {result.skipped_payments}"))
 
             if result.failed_payments > 0:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"  Failed payments: {result.failed_payments}"
-                    )
-                )
+                self.stdout.write(self.style.ERROR(f"  Failed payments: {result.failed_payments}"))
 
-            self.stdout.write(
-                f"  Total des frais synchronisés: {result.total_fees:.2f} EUR"
-            )
+            self.stdout.write(f"  Total des frais synchronisés: {result.total_fees:.2f} EUR")
 
             # Afficher les erreurs
             if result.errors:
                 self.stdout.write("\n" + self.style.ERROR("Erreurs détaillées:"))
                 for error in result.errors[:10]:  # Limiter à 10 erreurs
-                    self.stdout.write(
-                        f"  - Paiement {error['payment_id']}: {error['error']}"
-                    )
+                    self.stdout.write(f"  - Paiement {error['payment_id']}: {error['error']}")
                 if len(result.errors) > 10:
-                    self.stdout.write(
-                        f"  ... et {len(result.errors) - 10} autres erreurs"
-                    )
+                    self.stdout.write(f"  ... et {len(result.errors) - 10} autres erreurs")
 
             self.stdout.write("=" * 60)
 
             if dry_run:
-                self.stdout.write(
-                    self.style.WARNING(
-                        "\nDry-run mode: No changes were made"
-                    )
-                )
+                self.stdout.write(self.style.WARNING("\nDry-run mode: No changes were made"))
             else:
-                self.stdout.write(
-                    self.style.SUCCESS("\nSynchronisation terminée avec succès!")
-                )
+                self.stdout.write(self.style.SUCCESS("\nSynchronisation terminée avec succès!"))
 
         except Exception as e:
             logger.exception("Erreur lors de la synchronisation")
