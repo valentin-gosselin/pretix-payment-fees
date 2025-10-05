@@ -45,54 +45,47 @@ class PaymentListPSPExporter(ListExporter):
     def additional_form_fields(self):
         return OrderedDict(
             [
-                (
-                    "end_date_range",
-                    DateFrameField(
-                        label=_("Date range (payment date)"),
-                        include_future_frames=False,
-                        required=False,
-                        help_text=_(
-                            "Note that using this will exclude any non-confirmed payments or non-completed refunds."
-                        ),
-                    ),
-                ),
-                (
-                    "start_date_range",
-                    DateFrameField(
-                        label=_("Date range (start of transaction)"),
-                        include_future_frames=False,
-                        required=False,
-                    ),
-                ),
-                (
-                    "payment_states",
-                    forms.MultipleChoiceField(
-                        label=_("Payment states"),
-                        choices=OrderPayment.PAYMENT_STATES,
-                        initial=[
-                            OrderPayment.PAYMENT_STATE_CONFIRMED,
-                            OrderPayment.PAYMENT_STATE_REFUNDED,
-                        ],
-                        required=False,
-                        widget=forms.CheckboxSelectMultiple,
-                    ),
-                ),
-                (
-                    "refund_states",
-                    forms.MultipleChoiceField(
-                        label=_("Refund states"),
-                        choices=OrderRefund.REFUND_STATES,
-                        initial=[
-                            OrderRefund.REFUND_STATE_DONE,
-                            OrderRefund.REFUND_STATE_CREATED,
-                            OrderRefund.REFUND_STATE_TRANSIT,
-                        ],
-                        widget=forms.CheckboxSelectMultiple,
-                        required=False,
-                    ),
-                ),
-            ]
-        )
+                ("end_date_range",
+                 DateFrameField(
+                     label=_("Date range (payment date)"),
+                     include_future_frames=False,
+                     required=False,
+                     help_text=_("Note that using this will exclude any non-confirmed payments or non-completed refunds."),
+                 ),
+                 ),
+                ("start_date_range",
+                 DateFrameField(
+                     label=_("Date range (start of transaction)"),
+                     include_future_frames=False,
+                     required=False,
+                 ),
+                 ),
+                ("payment_states",
+                 forms.MultipleChoiceField(
+                     label=_("Payment states"),
+                     choices=OrderPayment.PAYMENT_STATES,
+                     initial=[
+                         OrderPayment.PAYMENT_STATE_CONFIRMED,
+                         OrderPayment.PAYMENT_STATE_REFUNDED,
+                     ],
+                     required=False,
+                     widget=forms.CheckboxSelectMultiple,
+                 ),
+                 ),
+                ("refund_states",
+                 forms.MultipleChoiceField(
+                     label=_("Refund states"),
+                     choices=OrderRefund.REFUND_STATES,
+                     initial=[
+                         OrderRefund.REFUND_STATE_DONE,
+                         OrderRefund.REFUND_STATE_CREATED,
+                         OrderRefund.REFUND_STATE_TRANSIT,
+                     ],
+                     widget=forms.CheckboxSelectMultiple,
+                     required=False,
+                 ),
+                 ),
+            ])
 
     def iterate_list(self, form_data):
         provider_names = dict(get_all_payment_providers())

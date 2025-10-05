@@ -13,31 +13,52 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pspconfig',
             name='mollie_client_id',
-            field=models.CharField(blank=True, help_text='Client ID de votre application Mollie Connect (requis pour frais réels)', max_length=255, verbose_name='Client ID Mollie Connect'),
+            field=models.CharField(
+                blank=True,
+                help_text='Client ID de votre application Mollie Connect (requis pour frais réels)',
+                max_length=255,
+                verbose_name='Client ID Mollie Connect'),
         ),
         migrations.AddField(
             model_name='pspconfig',
             name='mollie_client_secret',
-            field=models.CharField(blank=True, help_text='Client Secret de votre application Mollie Connect', max_length=255, verbose_name='Client Secret Mollie Connect'),
+            field=models.CharField(
+                blank=True,
+                help_text='Client Secret de votre application Mollie Connect',
+                max_length=255,
+                verbose_name='Client Secret Mollie Connect'),
         ),
         migrations.AddField(
             model_name='pspconfig',
             name='mollie_access_token',
-            field=models.TextField(blank=True, help_text='Token OAuth Mollie (géré automatiquement)', verbose_name='Access Token OAuth'),
+            field=models.TextField(
+                blank=True,
+                help_text='Token OAuth Mollie (géré automatiquement)',
+                verbose_name='Access Token OAuth'),
         ),
         migrations.AddField(
             model_name='pspconfig',
             name='mollie_refresh_token',
-            field=models.TextField(blank=True, help_text='Refresh token OAuth Mollie (géré automatiquement)', verbose_name='Refresh Token OAuth'),
+            field=models.TextField(
+                blank=True,
+                help_text='Refresh token OAuth Mollie (géré automatiquement)',
+                verbose_name='Refresh Token OAuth'),
         ),
         migrations.AddField(
             model_name='pspconfig',
             name='mollie_token_expires_at',
-            field=models.DateTimeField(blank=True, help_text="Date d'expiration de l'access token", null=True, verbose_name='Expiration du token'),
+            field=models.DateTimeField(
+                blank=True,
+                help_text="Date d'expiration de l'access token",
+                null=True,
+                verbose_name='Expiration du token'),
         ),
         migrations.AddField(
             model_name='pspconfig',
             name='mollie_oauth_connected',
-            field=models.BooleanField(default=False, help_text='Indique si OAuth Mollie Connect est actif', verbose_name='OAuth connecté'),
+            field=models.BooleanField(
+                default=False,
+                help_text='Indique si OAuth Mollie Connect est actif',
+                verbose_name='OAuth connecté'),
         ),
     ]
