@@ -70,8 +70,11 @@ Changelog = "https://github.com/valentin-gosselin/pretix-payment-fees/blob/main/
 [project.entry-points."pretix.plugin"]
 pretix_payment_fees = "pretix_payment_fees:PluginApp"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pretix_payment_fees*"]
+
 [tool.setuptools]
-packages = ["pretix_payment_fees"]
 include-package-data = true
 
 [tool.setuptools.package-data]

@@ -978,3 +978,8 @@ msgstr "Weet u zeker dat u de verbinding met Mollie Connect wilt verbreken?"
 msgid " to obtain an Access Token"
 msgstr " om een Toegangstoken te verkrijgen"
 
+msgid "# Tickets"
+msgstr "# Tickets"
+
+msgid "Fee/ticket"
+msgstr "Kosten/ticket"

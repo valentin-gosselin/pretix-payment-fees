@@ -9,7 +9,8 @@ import copy
 from collections import defaultdict
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import F, Sum
+from django.utils.formats import localize
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, pgettext_lazy
@@ -100,24 +101,24 @@ class AccountingReportPSPExporter(ReportExporter):
                 sorted(set(self.events.values_list("currency", flat=True).distinct()))
             )
 
-            # Section Commandes (Orders)
+            # Section Commandes (Orders) - utilise notre override avec total du nombre de places
             for c in currencies:
                 c_head = f" [{c}]" if len(currencies) > 1 else ""
                 story += [
                     Spacer(0, 3 * mm),
                     FontFallbackParagraph(_("Orders") + c_head, style_h2),
                     Spacer(0, 3 * mm),
-                    *super()._table_transactions(form_data, c),
+                    *self._table_transactions(form_data, c),
                 ]
 
-            # Section Paiements (Payments)
+            # Section Paiements (Payments) - utilise notre override avec # billets
             for c in currencies:
                 c_head = f" [{c}]" if len(currencies) > 1 else ""
                 story += [
                     Spacer(0, 8 * mm),
                     FontFallbackParagraph(_("Payments") + c_head, style_h2),
                     Spacer(0, 3 * mm),
-                    *super()._table_payments(form_data, c),
+                    *self._table_payments(form_data, c),
                 ]
 
             # ➕ NOUVEAU : Section Frais PSP
@@ -166,20 +167,335 @@ class AccountingReportPSPExporter(ReportExporter):
             f.seek(0)
             return self.filename + ".pdf", "application/pdf", f.read()
 
+    def _table_transactions(self, form_data, currency):
+        """
+        Override de _table_transactions pour ajouter le total du nombre de places.
+
+        Copie de la méthode parent avec ajout de la somme dans la colonne "#".
+        """
+        tstyle = copy.copy(self.get_style())
+        tstyle.fontSize = 8
+        tstyle.leading = 10
+        tstyle_right = copy.copy(tstyle)
+        tstyle_right.alignment = TA_RIGHT
+        tstyle_bold = copy.copy(tstyle)
+        tstyle_bold.fontName = "OpenSansBd"
+        tstyle_bold_right = copy.copy(tstyle_bold)
+        tstyle_bold_right.alignment = TA_RIGHT
+
+        tdata = [
+            [
+                FontFallbackParagraph(self._transaction_group_header_label(), tstyle_bold),
+                FontFallbackParagraph(_("Price"), tstyle_bold_right),
+                FontFallbackParagraph(_("Tax rate"), tstyle_bold_right),
+                FontFallbackParagraph("#", tstyle_bold_right),
+                FontFallbackParagraph(_("Net total"), tstyle_bold_right),
+                FontFallbackParagraph(_("Tax total"), tstyle_bold_right),
+                FontFallbackParagraph(_("Gross total"), tstyle_bold_right),
+            ]
+        ]
+
+        qs = (
+            self._transaction_qs_group(
+                self._transaction_qs(form_data, currency),
+                form_data
+            )
+            .annotate(
+                sum_cont=Sum("count"),
+                sum_price=Sum(F("count") * F("price")),
+                sum_tax=Sum(F("count") * F("tax_value")),
+            )
+        )
+
+        tstyledata = []
+
+        sum_cnt_by_tax_rate = defaultdict(int)
+        sum_price_by_tax_rate = defaultdict(Decimal)
+        sum_tax_by_tax_rate = defaultdict(Decimal)
+        sum_price_by_group = Decimal("0.00")
+        sum_tax_by_group = Decimal("0.00")
+        sum_cnt_by_group = 0
+        last_group = None
+        last_group_head_idx = 0
+
+        for r in qs:
+            e = self._transaction_group_label(form_data, r)
+
+            if e != last_group:
+                if last_group_head_idx > 0 and e is not None:
+                    tdata[last_group_head_idx][3] = Paragraph(str(sum_cnt_by_group), tstyle_bold_right)
+                    tdata[last_group_head_idx][4] = Paragraph(money_filter(sum_price_by_group - sum_tax_by_group, currency), tstyle_bold_right)
+                    tdata[last_group_head_idx][5] = Paragraph(money_filter(sum_tax_by_group, currency), tstyle_bold_right)
+                    tdata[last_group_head_idx][6] = Paragraph(money_filter(sum_price_by_group, currency), tstyle_bold_right)
+                tdata.append(
+                    [
+                        FontFallbackParagraph(
+                            e,
+                            tstyle_bold,
+                        ),
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                    ]
+                )
+                tstyledata.append(
+                    ("SPAN", (0, len(tdata) - 1), (3, len(tdata) - 1)),
+                )
+                last_group = e
+                last_group_head_idx = len(tdata) - 1
+                sum_price_by_group = Decimal("0.00")
+                sum_tax_by_group = Decimal("0.00")
+                sum_cnt_by_group = 0
+
+            text = self._transaction_row_label(r)
+            tdata.append(
+                [
+                    FontFallbackParagraph(text, tstyle),
+                    Paragraph(
+                        money_filter(r["price"], currency)
+                        if "price" in r and r["price"] is not None
+                        else "",
+                        tstyle_right,
+                    ),
+                    Paragraph(localize(r["tax_rate"].normalize()) + " %", tstyle_right),
+                    Paragraph(str(r["sum_cont"]), tstyle_right),
+                    Paragraph(
+                        money_filter(r["sum_price"] - r["sum_tax"], currency), tstyle_right
+                    ),
+                    Paragraph(money_filter(r["sum_tax"], currency), tstyle_right),
+                    Paragraph(money_filter(r["sum_price"], currency), tstyle_right),
+                ]
+            )
+            sum_cnt_by_tax_rate[r["tax_rate"]] += r["sum_cont"]
+            sum_price_by_tax_rate[r["tax_rate"]] += r["sum_price"]
+            sum_tax_by_tax_rate[r["tax_rate"]] += r["sum_tax"]
+            sum_price_by_group += r["sum_price"]
+            sum_tax_by_group += r["sum_tax"]
+            sum_cnt_by_group += r["sum_cont"]
+
+        if last_group_head_idx > 0 and last_group is not None:
+            tdata[last_group_head_idx][3] = Paragraph(str(sum_cnt_by_group), tstyle_bold_right)
+            tdata[last_group_head_idx][4] = Paragraph(money_filter(sum_price_by_group - sum_tax_by_group, currency), tstyle_bold_right)
+            tdata[last_group_head_idx][5] = Paragraph(money_filter(sum_tax_by_group, currency), tstyle_bold_right)
+            tdata[last_group_head_idx][6] = Paragraph(money_filter(sum_price_by_group, currency), tstyle_bold_right)
+
+        # Lignes de somme par taux de TVA (si plusieurs taux)
+        if len(sum_tax_by_tax_rate) > 1:
+            for tax_rate in sorted(sum_tax_by_tax_rate.keys(), reverse=True):
+                tdata.append(
+                    [
+                        FontFallbackParagraph(_("Sum"), tstyle),
+                        Paragraph("", tstyle_right),
+                        Paragraph(localize(tax_rate.normalize()) + " %", tstyle_right),
+                        Paragraph(str(sum_cnt_by_tax_rate[tax_rate]), tstyle_right),
+                        Paragraph(
+                            money_filter(
+                                sum_price_by_tax_rate[tax_rate]
+                                - sum_tax_by_tax_rate[tax_rate],
+                                currency,
+                            ),
+                            tstyle_right,
+                        ),
+                        Paragraph(
+                            money_filter(sum_tax_by_tax_rate[tax_rate], currency), tstyle_right
+                        ),
+                        Paragraph(
+                            money_filter(sum_price_by_tax_rate[tax_rate], currency),
+                            tstyle_right,
+                        ),
+                    ]
+                )
+            tstyledata += [
+                (
+                    "LINEABOVE",
+                    (0, -len(sum_tax_by_tax_rate) - 1),
+                    (-1, -len(sum_tax_by_tax_rate) - 1),
+                    0.5,
+                    colors.black,
+                ),
+            ]
+
+        # Ligne Total avec somme du nombre de places
+        total_count = sum(sum_cnt_by_tax_rate.values())
+        tdata.append(
+            [
+                FontFallbackParagraph(_("Total"), tstyle_bold),
+                Paragraph("", tstyle_right),
+                Paragraph("", tstyle_right),
+                Paragraph(str(total_count), tstyle_bold_right),
+                Paragraph(
+                    money_filter(
+                        sum(sum_price_by_tax_rate.values())
+                        - sum(sum_tax_by_tax_rate.values()),
+                        currency,
+                    ),
+                    tstyle_bold_right,
+                ),
+                Paragraph(
+                    money_filter(sum(sum_tax_by_tax_rate.values()), currency),
+                    tstyle_bold_right,
+                ),
+                Paragraph(
+                    money_filter(sum(sum_price_by_tax_rate.values()), currency),
+                    tstyle_bold_right,
+                ),
+            ]
+        )
+        tstyledata += [
+            ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.black),
+            ("LINEABOVE", (0, -1), (-1, -1), 0.5, colors.black),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (0, -1), 0),
+            ("RIGHTPADDING", (-1, 0), (-1, -1), 0),
+        ]
+        colwidths = [
+            a * (self.pagesize[0] - 20 * mm)
+            for a in [0.28, 0.1, 0.1, 0.1, 0.14, 0.14, 0.14]
+        ]
+        table = Table(tdata, colWidths=colwidths, repeatRows=1)
+        table.setStyle(TableStyle(tstyledata))
+        return [table]
+
+    def _table_payments(self, form_data, currency):
+        """
+        Override de _table_payments pour ajouter une colonne "# Billets".
+
+        Format:
+        -------------------------------------------------------------------------
+        Mode de paiement | Paiements | Remboursements | # Billets | Total
+        -------------------------------------------------------------------------
+        """
+        tstyle = copy.copy(self.get_style())
+        tstyle.fontSize = 8
+        tstyle.leading = 10
+        tstyle_right = copy.copy(tstyle)
+        tstyle_right.alignment = TA_RIGHT
+        tstyle_bold = copy.copy(tstyle)
+        tstyle_bold.fontName = "OpenSansBd"
+        tstyle_bold_right = copy.copy(tstyle_bold)
+        tstyle_bold_right.alignment = TA_RIGHT
+
+        tdata = [
+            [
+                FontFallbackParagraph(_("Payment method"), tstyle_bold),
+                FontFallbackParagraph(_("Payments"), tstyle_bold_right),
+                FontFallbackParagraph(_("Refunds"), tstyle_bold_right),
+                FontFallbackParagraph(_("# Tickets"), tstyle_bold_right),
+                FontFallbackParagraph(_("Total"), tstyle_bold_right),
+            ]
+        ]
+
+        # Paiements avec comptage des billets
+        p_qs = self._payment_qs(form_data, currency).select_related("order").prefetch_related("order__positions")
+
+        # Grouper par provider avec comptage des billets
+        payments_by_provider = defaultdict(lambda: {"amount": Decimal("0"), "tickets": 0})
+        orders_counted = defaultdict(set)
+
+        for payment in p_qs:
+            provider = payment.provider
+            payments_by_provider[provider]["amount"] += payment.amount
+
+            # Compter les billets de cette commande (si pas déjà comptés)
+            if payment.order.id not in orders_counted[provider]:
+                orders_counted[provider].add(payment.order.id)
+                ticket_count = payment.order.positions.filter(canceled=False).count()
+                payments_by_provider[provider]["tickets"] += ticket_count
+
+        # Remboursements
+        r_qs = (
+            self._refund_qs(form_data, currency)
+            .order_by("provider")
+            .values("provider")
+            .annotate(sum_amount=Sum("amount"))
+        )
+        refunds_by_provider = {r["provider"]: r["sum_amount"] for r in r_qs}
+
+        tstyledata = []
+        provider_names = dict(get_all_payment_providers())
+
+        providers = sorted(
+            list(set(payments_by_provider.keys()) | set(refunds_by_provider.keys()))
+        )
+        for p in providers:
+            payment_amount = payments_by_provider.get(p, {}).get("amount", Decimal("0"))
+            tickets = payments_by_provider.get(p, {}).get("tickets", 0)
+            refund_amount = refunds_by_provider.get(p, Decimal("0"))
+
+            tdata.append(
+                [
+                    Paragraph(provider_names.get(p, p), tstyle),
+                    FontFallbackParagraph(
+                        money_filter(payment_amount, currency) if payment_amount else "",
+                        tstyle_right,
+                    ),
+                    Paragraph(
+                        money_filter(refund_amount, currency) if refund_amount else "",
+                        tstyle_right,
+                    ),
+                    Paragraph(str(tickets) if tickets else "", tstyle_right),
+                    Paragraph(
+                        money_filter(payment_amount - refund_amount, currency),
+                        tstyle_right,
+                    ),
+                ]
+            )
+
+        # Ligne totale
+        total_payments = sum(p.get("amount", Decimal("0")) for p in payments_by_provider.values())
+        total_tickets = sum(p.get("tickets", 0) for p in payments_by_provider.values())
+        total_refunds = sum(refunds_by_provider.values(), Decimal("0"))
+
+        tdata.append(
+            [
+                FontFallbackParagraph(_("Total"), tstyle_bold),
+                Paragraph(money_filter(total_payments, currency), tstyle_bold_right),
+                Paragraph(money_filter(total_refunds, currency), tstyle_bold_right),
+                Paragraph(str(total_tickets), tstyle_bold_right),
+                Paragraph(money_filter(total_payments - total_refunds, currency), tstyle_bold_right),
+            ]
+        )
+
+        tstyledata += [
+            ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.black),
+            ("LINEABOVE", (0, -1), (-1, -1), 0.5, colors.black),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("LEFTPADDING", (0, 0), (0, -1), 0),
+            ("RIGHTPADDING", (-1, 0), (-1, -1), 0),
+        ]
+
+        colwidths = [a * (self.pagesize[0] - 20 * mm) for a in [0.40, 0.17, 0.17, 0.10, 0.16]]
+        table = Table(tdata, colWidths=colwidths, repeatRows=1)
+        table.setStyle(TableStyle(tstyledata))
+        return [table]
+
     def _table_psp_fees(self, form_data, currency):
         """
         Génère le tableau des frais PSP groupés par payment provider.
 
         Format:
-        --------------------------------------------------
-        Mode de paiement      | Transactions | Frais totaux
-        --------------------------------------------------
-        Mollie (CB)           | 73           | 44,70 €
-        SumUp                 | 5            | 2,50 €
-        --------------------------------------------------
-        Total frais PSP       | 78           | 47,20 €
-        --------------------------------------------------
+        -------------------------------------------------------------------------
+        Mode de paiement | Transactions | # Billets | Total fees | Frais/billet
+        -------------------------------------------------------------------------
+        Mollie (CB)      | 73           | 115       | 44,70 €    | 0,39 €
+        SumUp            | 5            | 8         | 2,50 €     | 0,31 €
+        -------------------------------------------------------------------------
+        Total            | 78           | 123       | 47,20 €    | 0,38 €
+        -------------------------------------------------------------------------
         """
+        from pretix.base.models import OrderPosition
+
         tstyle = copy.copy(self.get_style())
         tstyle.fontSize = 8
         tstyle.leading = 10
@@ -195,7 +511,9 @@ class AccountingReportPSPExporter(ReportExporter):
             [
                 FontFallbackParagraph(_("Payment method"), tstyle_bold),
                 FontFallbackParagraph(_("Transactions"), tstyle_bold_right),
+                FontFallbackParagraph(_("# Tickets"), tstyle_bold_right),
                 FontFallbackParagraph(_("Total fees"), tstyle_bold_right),
+                FontFallbackParagraph(_("Fee/ticket"), tstyle_bold_right),
             ]
         ]
 
@@ -208,7 +526,7 @@ class AccountingReportPSPExporter(ReportExporter):
                 canceled=False,
             )
             .select_related("order")
-            .prefetch_related("order__payments")
+            .prefetch_related("order__payments", "order__positions")
         )
 
         # Appliquer les filtres de dates
@@ -229,8 +547,9 @@ class AccountingReportPSPExporter(ReportExporter):
         if form_data["no_testmode"]:
             fees_qs = fees_qs.filter(order__testmode=False)
 
-        # Grouper par provider
-        fees_by_provider = defaultdict(lambda: {"count": 0, "total": Decimal("0")})
+        # Grouper par provider avec comptage des billets
+        fees_by_provider = defaultdict(lambda: {"count": 0, "total": Decimal("0"), "tickets": 0})
+        orders_counted = defaultdict(set)  # Pour éviter de compter plusieurs fois les billets d'une même commande
 
         for fee in fees_qs:
             # Trouver le payment provider associé
@@ -245,6 +564,13 @@ class AccountingReportPSPExporter(ReportExporter):
                 fees_by_provider[provider]["count"] += 1
                 fees_by_provider[provider]["total"] += fee.value
 
+                # Compter les billets de cette commande (si pas déjà comptés)
+                if fee.order.id not in orders_counted[provider]:
+                    orders_counted[provider].add(fee.order.id)
+                    # Compter les positions non annulées
+                    ticket_count = fee.order.positions.filter(canceled=False).count()
+                    fees_by_provider[provider]["tickets"] += ticket_count
+
         # Récupérer les noms des providers
         provider_names = dict(get_all_payment_providers())
 
@@ -254,23 +580,31 @@ class AccountingReportPSPExporter(ReportExporter):
 
         for provider in providers_sorted:
             data = fees_by_provider[provider]
+            # Calculer le frais moyen par billet
+            avg_fee = data["total"] / data["tickets"] if data["tickets"] > 0 else Decimal("0")
             tdata.append(
                 [
                     Paragraph(provider_names.get(provider, provider), tstyle),
                     Paragraph(str(data["count"]), tstyle_right),
+                    Paragraph(str(data["tickets"]), tstyle_right),
                     Paragraph(money_filter(data["total"], currency), tstyle_right),
+                    Paragraph(money_filter(avg_fee, currency), tstyle_right),
                 ]
             )
 
         # Ligne totale
         total_count = sum(f["count"] for f in fees_by_provider.values())
+        total_tickets = sum(f["tickets"] for f in fees_by_provider.values())
         total_fees = sum(f["total"] for f in fees_by_provider.values())
+        avg_fee_total = total_fees / total_tickets if total_tickets > 0 else Decimal("0")
 
         tdata.append(
             [
-                FontFallbackParagraph(_("Total frais bancaires"), tstyle_bold),
+                FontFallbackParagraph(_("Total bank fees"), tstyle_bold),
                 Paragraph(str(total_count), tstyle_bold_right),
+                Paragraph(str(total_tickets), tstyle_bold_right),
                 Paragraph(money_filter(total_fees, currency), tstyle_bold_right),
+                Paragraph(money_filter(avg_fee_total, currency), tstyle_bold_right),
             ]
         )
 
@@ -287,7 +621,7 @@ class AccountingReportPSPExporter(ReportExporter):
             ("RIGHTPADDING", (-1, 0), (-1, -1), 0),
         ]
 
-        colwidths = [a * (self.pagesize[0] - 20 * mm) for a in [0.60, 0.20, 0.20]]
+        colwidths = [a * (self.pagesize[0] - 20 * mm) for a in [0.40, 0.15, 0.12, 0.18, 0.15]]
         table = Table(tdata, colWidths=colwidths, repeatRows=1)
         table.setStyle(TableStyle(tstyledata))
 

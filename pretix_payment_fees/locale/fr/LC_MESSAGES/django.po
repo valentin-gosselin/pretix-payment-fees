@@ -865,3 +865,9 @@ msgid "Are you sure you want to disconnect Mollie Connect?"
 msgstr "Êtes-vous sûr de vouloir déconnecter Mollie Connect ?"
 msgid " to obtain an Access Token"
 msgstr " pour obtenir un Access Token"
+
+msgid "# Tickets"
+msgstr "# Billets"
+
+msgid "Fee/ticket"
+msgstr "Frais/billet"

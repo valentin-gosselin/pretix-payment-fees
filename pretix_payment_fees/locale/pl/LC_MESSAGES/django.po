@@ -977,3 +977,9 @@ msgstr "Czy na pewno chcesz rozłączyć Mollie Connect?"
 
 msgid " to obtain an Access Token"
 msgstr " aby uzyskać Token Dostępu"
+
+msgid "# Tickets"
+msgstr "# Biletów"
+
+msgid "Fee/ticket"
+msgstr "Opłata/bilet"
