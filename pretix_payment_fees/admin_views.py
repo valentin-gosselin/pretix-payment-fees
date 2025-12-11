@@ -251,16 +251,6 @@ class PSPSyncView(OrganizerPermissionRequiredMixin, FormView):
         force = form.cleaned_data.get("force", False)
         dry_run = form.cleaned_data.get("dry_run", False)
 
-        # Afficher un message de traitement en cours
-        if not dry_run:
-            messages.info(
-                self.request,
-                _(
-                    "Processing your request... Synchronization may take several "
-                    "minutes for a large number of payments."
-                ),
-            )
-
         try:
             # Initialiser le service
             sync_service = PSPSyncService(organizer=self.request.organizer)

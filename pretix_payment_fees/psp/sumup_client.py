@@ -70,17 +70,27 @@ class SumUpClient:
             return None
 
     def _get_transaction(self, transaction_id):
-        """Récupère une transaction SumUp."""
-        # SumUp API : GET /v0.1/me/transactions/{id}
-        # Mais parfois l'API nécessite de lister et filtrer
+        """
+        Récupère une transaction SumUp.
+
+        Args:
+            transaction_id: transaction_code (ex: TAAAYKCMX7Q) ou UUID de la transaction
+        """
+        # SumUp API : GET /v0.1/me/transactions?transaction_code=XXX
+        # Retourne directement l'objet transaction (pas dans un tableau)
         url = f"{self.BASE_URL}/me/transactions"
-        params = {"transaction_code": transaction_id, "limit": 1}
+        params = {"transaction_code": transaction_id}
 
         response = self._make_request("GET", url, params=params)
-        if not response or not response.get("items"):
+        if not response:
             return None
 
-        return response["items"][0]
+        # L'API retourne directement l'objet transaction avec id, amount, events, etc.
+        # Vérifier qu'on a bien une transaction valide
+        if response.get("id") or response.get("transaction_code"):
+            return response
+
+        return None
 
     def list_transactions(self, date_from, date_to):
         """
@@ -126,10 +136,14 @@ class SumUpClient:
         """
         Extrait les frais d'une transaction SumUp.
 
-        SumUp fournit généralement :
-        - amount : montant brut
-        - fee_amount : frais prélevés par SumUp
-        - net_amount : montant net versé au marchand
+        Structure de la réponse API SumUp :
+        - amount : montant brut de la transaction
+        - currency : devise (EUR)
+        - events[] : liste des événements de payout avec fee_amount
+        - events[].fee_amount : frais prélevés par SumUp (VRAIS FRAIS)
+        - events[].amount : montant net versé au marchand
+        - status : SUCCESSFUL, CANCELLED, FAILED, REFUNDED
+        - simple_status : PAID_OUT, etc.
         """
         amount_str = transaction_data.get("amount", "0.00")
         currency = transaction_data.get("currency", "EUR")
@@ -137,27 +151,56 @@ class SumUpClient:
         # Convertir en Decimal
         amount_gross = Decimal(str(amount_str))
 
-        # SumUp peut fournir fee_amount directement
-        fee_amount_str = transaction_data.get("fee_amount")
-        if fee_amount_str:
-            amount_fee = Decimal(str(fee_amount_str))
-        else:
-            # Fallback : estimer (1.95% + 0.15 EUR pour cartes)
-            amount_fee = (amount_gross * Decimal("0.0195")) + Decimal("0.15")
-
-        amount_net = amount_gross - amount_fee
-
-        # Détails des frais
+        # Extraire les VRAIS frais depuis events[]
+        amount_fee = Decimal("0.00")
+        amount_net = amount_gross
         fee_details = []
-        if fee_amount_str:
-            fee_details.append(f"SumUp fee: {amount_fee} {currency}")
-        else:
-            fee_details.append(f"Estimation: 1.95% + 0.15 {currency}")
+        payout_id = ""
+
+        events = transaction_data.get("events", [])
+        if events:
+            # Prendre le premier événement PAYOUT
+            for event in events:
+                if event.get("type") == "PAYOUT" or event.get("fee_amount") is not None:
+                    fee_amount_val = event.get("fee_amount", 0)
+                    if fee_amount_val:
+                        amount_fee = Decimal(str(fee_amount_val))
+                        amount_net = Decimal(str(event.get("amount", amount_gross - amount_fee)))
+                        payout_id = str(event.get("payout_id", ""))
+                        payout_ref = event.get("payout_reference", "")
+                        fee_details.append(f"SumUp fee: {amount_fee} {currency}")
+                        if payout_ref:
+                            fee_details.append(f"Payout: {payout_ref}")
+                        logger.info(
+                            f"✓ SumUp real fees extracted: {amount_fee} {currency} "
+                            f"(net: {amount_net}, payout_id: {payout_id})"
+                        )
+                        break
+
+        # Fallback si pas de fee dans events (transaction pas encore payée)
+        if amount_fee == Decimal("0.00") and not events:
+            # Estimer les frais : 2.5% pour paiements en ligne (ECOM)
+            payment_type = transaction_data.get("payment_type", "")
+            if payment_type == "ECOM":
+                # Paiement en ligne : 2.5%
+                amount_fee = (amount_gross * Decimal("0.025")).quantize(Decimal("0.01"))
+                fee_details.append(f"Estimation ECOM: 2.5% = {amount_fee} {currency}")
+            else:
+                # Paiement en personne : 1.69%
+                amount_fee = (amount_gross * Decimal("0.0169")).quantize(Decimal("0.01"))
+                fee_details.append(f"Estimation POS: 1.69% = {amount_fee} {currency}")
+            amount_net = amount_gross - amount_fee
+            logger.info(f"⚠ SumUp fees estimated (no payout yet): {amount_fee} {currency}")
 
         # Statut
         status = transaction_data.get("status", "UNKNOWN")
+        simple_status = transaction_data.get("simple_status", "")
+
         if status == "SUCCESSFUL":
-            status = "ok"
+            if simple_status == "PAID_OUT":
+                status = "payé"
+            else:
+                status = "ok"
         elif status == "CANCELLED":
             status = "annulé"
         elif status == "FAILED":
@@ -167,8 +210,8 @@ class SumUpClient:
 
         return {
             "amount_fee": amount_fee,
-            "fee_details_text": "; ".join(fee_details),
-            "settlement_id": "",  # SumUp n'a pas de settlement_id comme Mollie
+            "fee_details_text": "; ".join(fee_details) if fee_details else "N/A",
+            "settlement_id": payout_id,  # Utiliser payout_id comme settlement_id
             "status": status,
             "amount_gross": amount_gross,
             "amount_net": amount_net,
@@ -256,9 +299,13 @@ class SumUpClient:
             # Extraire la date de transaction
             timestamp_str = transaction_data.get("timestamp", "")
             if timestamp_str:
-                transaction_date = make_aware(
-                    datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-                )
+                # Le timestamp SumUp est déjà timezone-aware (ISO 8601 avec Z)
+                parsed_date = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                # Si déjà aware, pas besoin de make_aware
+                if parsed_date.tzinfo is None:
+                    transaction_date = make_aware(parsed_date)
+                else:
+                    transaction_date = parsed_date
             else:
                 transaction_date = now()
 

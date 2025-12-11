@@ -172,7 +172,7 @@ class PSPSyncService:
         # Filtrer les paiements déjà synchronisés (optimisation pour auto-sync)
         if skip_already_synced and not force:
             # Créer une liste des paiements déjà synchronisés
-            already_synced_payment_ids = []
+            already_synced_payment_ids = set()
             for payment in payments:
                 provider_fee_type = f"{payment.provider}_fee"
                 has_fee = OrderFee.objects.filter(
@@ -181,11 +181,12 @@ class PSPSyncService:
                     internal_type=provider_fee_type,
                 ).exists()
                 if has_fee:
-                    already_synced_payment_ids.append(payment.id)
+                    already_synced_payment_ids.add(payment.id)
 
             # Exclure les paiements déjà synchronisés
             if already_synced_payment_ids:
-                payments = payments.exclude(id__in=already_synced_payment_ids)
+                # Fonctionne que payments soit une liste ou un queryset
+                payments = [p for p in payments if p.id not in already_synced_payment_ids]
                 logger.info(f"Skipping {len(already_synced_payment_ids)} already synced payments")
 
         result = PSPSyncResult()
@@ -233,8 +234,13 @@ class PSPSyncService:
                 f"⊗ Payment {payment.id} FAILED: no PSP data (provider={payment.provider}, transaction_id={payment.info_data.get('id') if payment.info_data else 'NO INFO_DATA'})"
             )
             result.add_error(
-                str(payment.id), "Failed to fetch PSP data (no API key or unsupported provider)"
+                str(payment.id), "Failed to fetch PSP data (API error or transaction not found)"
             )
+            return
+
+        # Provider non configuré ou non supporté -> skip silencieux (pas une erreur)
+        if psp_data.get("_skip"):
+            result.add_skip(psp_data.get("_reason", "Provider not configured"))
             return
 
         fee_amount = psp_data.get("amount_fee", Decimal("0.00"))
@@ -269,7 +275,17 @@ class PSPSyncService:
             Dict avec amount_fee, fee_details_text, etc. ou None
         """
         provider = payment.provider
-        transaction_id = payment.info_data.get("id", "") if payment.info_data else ""
+
+        # Extraire le transaction_id selon le provider
+        transaction_id = ""
+        if payment.info_data:
+            if provider == "sumup":
+                # SumUp: l'ID est dans sumup_transaction.transaction_code ou sumup_transaction.id
+                sumup_tx = payment.info_data.get("sumup_transaction", {})
+                transaction_id = sumup_tx.get("transaction_code") or sumup_tx.get("id", "")
+            else:
+                # Mollie et autres: l'ID est directement dans info_data.id
+                transaction_id = payment.info_data.get("id", "")
 
         if not transaction_id:
             logger.warning(
@@ -284,8 +300,8 @@ class PSPSyncService:
         # Mollie
         if provider in ["mollie", "mollie_bancontact", "mollie_ideal", "mollie_creditcard"]:
             if not self.mollie_client:
-                logger.warning("Mollie client not configured")
-                return None
+                logger.debug(f"Mollie client not configured, skipping payment {payment.id}")
+                return {"_skip": True, "_reason": "Mollie not configured"}
 
             logger.info(
                 f"Fetching Mollie data for payment {payment.id}, transaction_id={transaction_id}"
@@ -295,8 +311,8 @@ class PSPSyncService:
         # SumUp
         elif provider == "sumup":
             if not self.sumup_client:
-                logger.warning("SumUp client not configured")
-                return None
+                logger.debug(f"SumUp client not configured, skipping payment {payment.id}")
+                return {"_skip": True, "_reason": "SumUp not configured"}
 
             logger.info(
                 f"Fetching SumUp data for payment {payment.id}, transaction_id={transaction_id}"
@@ -304,8 +320,8 @@ class PSPSyncService:
             return self.sumup_client.get_transaction_details(transaction_id)
 
         else:
-            logger.info(f"Provider {provider} not supported for PSP sync")
-            return None
+            logger.debug(f"Provider {provider} not supported for PSP sync")
+            return {"_skip": True, "_reason": f"Provider {provider} not supported"}
 
     def _create_or_update_order_fee(self, payment: OrderPayment, psp_data: Dict):
         """
@@ -403,22 +419,25 @@ class PSPSyncService:
         if days_back:
             date_to = now()
             date_from = date_to - timedelta(days=days_back)
-        elif not date_from:
-            date_from = event.date_from
+        # Si pas de date_from spécifiée, ne pas filtrer par date de début
+        # (event.date_from peut être dans le futur pour des préventes)
         if not date_to:
             date_to = now()
 
-        logger.info(f"Syncing payments for event {event.slug} from {date_from} to {date_to}")
+        logger.info(f"Syncing payments for event {event.slug} from {date_from or 'beginning'} to {date_to}")
 
         # Récupérer les paiements
-        payments = OrderPayment.objects.filter(
+        payments_qs = OrderPayment.objects.filter(
             order__event=event,
-            payment_date__gte=date_from,
             payment_date__lte=date_to,
             state=OrderPayment.PAYMENT_STATE_CONFIRMED,
         ).select_related("order")
 
-        return self.sync_payments(payments, force=force, dry_run=dry_run)
+        # Filtrer par date_from seulement si spécifiée
+        if date_from:
+            payments_qs = payments_qs.filter(payment_date__gte=date_from)
+
+        return self.sync_payments(payments_qs, force=force, dry_run=dry_run)
 
     def sync_organizer_payments(
         self,
