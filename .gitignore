@@ -6,7 +6,7 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
-*.mo
+# *.mo  # On garde les .mo compilés pour pip install depuis GitHub
 .DS_Store
 *.swp
 *.swo
