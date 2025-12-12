@@ -204,7 +204,15 @@ class MollieDisconnectView(OrganizerPermissionRequiredMixin, View):
 
     permission = "can_change_organizer_settings"
 
+    def get(self, request, *args, **kwargs):
+        """Traite la déconnexion via GET (lien avec confirmation JS)."""
+        return self._disconnect(request)
+
     def post(self, request, *args, **kwargs):
+        """Traite la déconnexion via POST."""
+        return self._disconnect(request)
+
+    def _disconnect(self, request):
         """Révoque l'accès OAuth et efface les tokens."""
         organizer = request.organizer
 

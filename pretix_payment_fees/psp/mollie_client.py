@@ -439,6 +439,33 @@ class MollieClient:
 
         return None
 
+    def _parse_datetime(self, date_string):
+        """
+        Parse une date ISO 8601 en datetime aware.
+
+        Gère les formats avec ou sans timezone (Z ou +00:00).
+
+        Args:
+            date_string: Date ISO 8601 (ex: "2025-09-06T17:56:10+00:00" ou "2025-09-06T17:56:10Z")
+
+        Returns:
+            datetime aware ou None si parsing impossible
+        """
+        if not date_string:
+            return None
+
+        try:
+            # Remplacer Z par +00:00 pour fromisoformat
+            parsed_date = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
+            # Si déjà aware, retourner directement
+            if parsed_date.tzinfo is not None:
+                return parsed_date
+            # Sinon, rendre aware
+            return make_aware(parsed_date)
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Could not parse datetime '{date_string}': {e}")
+            return None
+
     def _extract_settlement_date(self, settlement_id):
         """
         Extract settlement date from Mollie settlement API.
@@ -457,9 +484,13 @@ class MollieClient:
             settlement_data = self._make_request("GET", settlement_url)
 
             if settlement_data and "settledAt" in settlement_data:
-                return make_aware(
-                    datetime.fromisoformat(settlement_data["settledAt"].replace("Z", "+00:00"))
+                parsed_date = datetime.fromisoformat(
+                    settlement_data["settledAt"].replace("Z", "+00:00")
                 )
+                # Si déjà aware (contient +00:00), pas besoin de make_aware
+                if parsed_date.tzinfo is None:
+                    return make_aware(parsed_date)
+                return parsed_date
         except Exception as e:
             logger.warning(f"Could not extract settlement date for {settlement_id}: {e}")
 
@@ -483,11 +514,7 @@ class MollieClient:
                     "settlement_id": fee_data.get("settlement_id", ""),
                     "status": fee_data["status"],
                     "fee_details": {"raw": fee_data["fee_details_text"]},
-                    "transaction_date": make_aware(
-                        datetime.fromisoformat(
-                            payment_data.get("createdAt", "").replace("Z", "+00:00")
-                        )
-                    ),
+                    "transaction_date": self._parse_datetime(payment_data.get("createdAt", "")),
                     "settlement_date": self._extract_settlement_date(fee_data.get("settlement_id")),
                 },
             )
