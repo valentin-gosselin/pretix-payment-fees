@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pretix-payment-fees"
-version = "0.9.0"
+version = "1.0.0"
 description = "Pretix plugin for tracking and reporting payment provider fees (Mollie, SumUp)"
 readme = "README.md"
 authors = [
