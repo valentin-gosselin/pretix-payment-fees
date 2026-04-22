@@ -93,64 +93,67 @@ def get_fee_type_name(sender, fee_type, internal_type, **kwargs):
 
 
 @receiver(order_paid, dispatch_uid="export_frais_order_paid")
-def on_order_paid(sender, **kwargs):
+def on_order_paid(sender, order=None, **kwargs):
     """
     Synchronise automatiquement les frais PSP quand une commande est payée.
 
-    Ce signal est déclenché par Pretix quand une commande passe à l'état payé.
-    On récupère le dernier paiement confirmé et on synchronise ses frais PSP.
+    `order_paid` est un EventPluginSignal : `sender` est l'Event, l'instance Order
+    arrive dans le kwarg `order`. Tout échec est catché et loggé sans jamais
+    propager d'exception pour ne pas bloquer la tâche perform_order côté Pretix.
     """
-    order = sender
-
-    # Vérifier qu'on a une configuration PSP
-    from .models import PSPConfig
-    from .services.psp_sync import PSPSyncService
-
+    # Guard: never let this receiver break checkout.
     try:
-        psp_config = PSPConfig.objects.get(organizer=order.event.organizer)
-    except PSPConfig.DoesNotExist:
-        logger.debug(
-            f"No PSP config for organizer {order.event.organizer.slug}, skipping auto-sync"
+        if order is None:
+            logger.warning("order_paid signal received without 'order' kwarg, skipping auto-sync")
+            return
+
+        from .models import PSPConfig
+        from .services.psp_sync import PSPSyncService
+
+        organizer = order.event.organizer
+
+        try:
+            psp_config = PSPConfig.objects.get(organizer=organizer)
+        except PSPConfig.DoesNotExist:
+            logger.debug(
+                f"No PSP config for organizer {organizer.slug}, skipping auto-sync"
+            )
+            return
+
+        if not (psp_config.mollie_enabled or psp_config.sumup_enabled):
+            logger.debug(
+                f"No PSP enabled for organizer {organizer.slug}, skipping auto-sync"
+            )
+            return
+
+        from pretix.base.models import OrderPayment
+
+        payment = (
+            order.payments.filter(state=OrderPayment.PAYMENT_STATE_CONFIRMED)
+            .order_by("-payment_date")
+            .first()
         )
-        return
 
-    # Vérifier qu'au moins un PSP est activé
-    if not (psp_config.mollie_enabled or psp_config.sumup_enabled):
-        logger.debug(
-            f"No PSP enabled for organizer {order.event.organizer.slug}, skipping auto-sync"
-        )
-        return
+        if not payment:
+            logger.warning(f"Order {order.code} marked as paid but no confirmed payment found")
+            return
 
-    # Récupérer le dernier paiement confirmé
-    from pretix.base.models import OrderPayment
+        supported_providers = [
+            "mollie",
+            "mollie_bancontact",
+            "mollie_ideal",
+            "mollie_creditcard",
+            "sumup",
+        ]
+        if payment.provider not in supported_providers:
+            logger.debug(
+                f"Payment provider {payment.provider} not supported for auto-sync, skipping"
+            )
+            return
 
-    payment = (
-        order.payments.filter(state=OrderPayment.PAYMENT_STATE_CONFIRMED)
-        .order_by("-payment_date")
-        .first()
-    )
+        logger.info(f"Auto-syncing PSP fees for order {order.code}, payment {payment.id}")
 
-    if not payment:
-        logger.warning(f"Order {order.code} marked as paid but no confirmed payment found")
-        return
-
-    # Vérifier si le provider est supporté
-    supported_providers = [
-        "mollie",
-        "mollie_bancontact",
-        "mollie_ideal",
-        "mollie_creditcard",
-        "sumup",
-    ]
-    if payment.provider not in supported_providers:
-        logger.debug(f"Payment provider {payment.provider} not supported for auto-sync, skipping")
-        return
-
-    # Synchroniser automatiquement les frais
-    logger.info(f"Auto-syncing PSP fees for order {order.code}, payment {payment.id}")
-
-    try:
-        sync_service = PSPSyncService(organizer=order.event.organizer, psp_config=psp_config)
+        sync_service = PSPSyncService(organizer=organizer, psp_config=psp_config)
         result = sync_service.sync_payments([payment], force=False, dry_run=False)
 
         if result.synced_payments > 0:
@@ -162,9 +165,15 @@ def on_order_paid(sender, **kwargs):
                 f"Payment {payment.id} skipped during auto-sync (already synced or zero fees)"
             )
         else:
-            logger.warning(f"Failed to auto-sync PSP fees for order {order.code}: {result.errors}")
+            logger.warning(
+                f"Failed to auto-sync PSP fees for order {order.code}: {result.errors}"
+            )
     except Exception as e:
-        logger.error(f"Error during auto-sync for order {order.code}: {e}", exc_info=True)
+        order_code = getattr(order, "code", "<unknown>")
+        logger.error(
+            f"Error in order_paid receiver for order {order_code}: {e}",
+            exc_info=True,
+        )
 
 
 @receiver(periodic_task, dispatch_uid="payment_fees_auto_sync")

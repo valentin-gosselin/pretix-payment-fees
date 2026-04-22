@@ -7,11 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v1.0.0
+### Planned
 - Full SumUp integration testing in production environment
 - Performance optimizations for bulk exports
 - Extended test coverage (>80%)
 - API rate limiting and circuit breaker patterns
+
+## [1.0.1] - 2026-04-22
+
+### Fixed
+- **Critical**: `order_paid` signal receiver used the wrong calling convention
+  (treated `sender` as the `Order` instead of the `Event`), causing every paid
+  order to raise `AttributeError: 'Event' object has no attribute 'event'`
+  inside the `perform_order` Celery task. The error was surfaced to buyers as
+  "An unexpected error occurred, please try again later" and blocked all
+  checkouts while the plugin was enabled.
+- Wrapped the whole `on_order_paid` receiver in a defensive `try/except` so
+  that any future failure in the auto-sync path is logged and never propagates
+  to the order creation pipeline.
 
 ## [0.9.0] - 2025-10-04
 
