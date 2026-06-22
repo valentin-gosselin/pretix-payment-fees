@@ -129,6 +129,15 @@ class RecetteLine:
             return ZERO
         return (self.gross / self.count).quantize(Decimal("0.01"))
 
+    @property
+    def fees_total(self) -> Decimal:
+        return sum(self.fees.values(), ZERO)
+
+    @property
+    def net(self) -> Decimal:
+        """Net revenue for the line = gross minus its allocated fees."""
+        return self.gross - self.fees_total
+
 
 @dataclass
 class RecetteCategory:
@@ -277,6 +286,34 @@ class RecetteReport:
     def net(self) -> Decimal:
         return self.gross - self.fees_total
 
+    def fee_reconciliation(self) -> dict:
+        """Check that the per-line fee allocation sums back to the totals.
+
+        Returns {fee_key: {"lines": Decimal, "total": Decimal, "ok": bool}}.
+        The per-line sum must equal the report-level fee total (which equals the
+        Pretix OrderFee total) to the cent. Used as a self-check and can be
+        surfaced in the export.
+        """
+        line_sums: Dict[str, Decimal] = {}
+        for ch in self.channels:
+            for se in ch.sessions:
+                for cat in se.categories:
+                    for ln in cat.lines:
+                        for k, v in ln.fees.items():
+                            line_sums[k] = line_sums.get(k, ZERO) + v
+        totals = self.fees
+        result = {}
+        for k in set(line_sums) | set(totals):
+            lines = line_sums.get(k, ZERO)
+            total = totals.get(k, ZERO)
+            result[k] = {"lines": lines, "total": total, "ok": lines == total}
+        return result
+
+    @property
+    def fees_reconciled(self) -> bool:
+        """True when every per-line fee allocation matches its total."""
+        return all(v["ok"] for v in self.fee_reconciliation().values())
+
     def cross_view(self) -> "CrossView":
         """Category x Session matrix (Trium pages 2-3 equivalent).
 
@@ -381,9 +418,7 @@ class RecetteDataBuilder:
         rows = self._aggregate(event_ids)
         self._fill_report(report, rows)
 
-        fee_rows = self._aggregate_fees(event_ids)
-        weights = self._order_session_weights(event_ids)
-        self._fill_fees(report, fee_rows, weights)
+        self._fill_fees(report, event_ids)
         return report
 
     def reconcile_with_cache(self, report: RecetteReport) -> dict:
@@ -526,129 +561,127 @@ class RecetteDataBuilder:
 
         report.channels = list(channels.values())
 
-    def _aggregate_fees(self, event_ids):
-        """Aggregated ORM query over OrderFee, grouped by order and fee key.
+    def _fill_fees(self, report: RecetteReport, event_ids):
+        """Allocate each fee ONLY to the lines that actually bore it.
 
-        An OrderFee belongs to an Order (not to a position), so it carries no
-        item or subevent. We group per order + channel + fee key, then attribute
-        each order's fee to its session(s) in _fill_fees (pro rata of gross when
-        the order spans several sessions). The fee key is the internal_type when
-        present, else the fee_type. No per-order loop over positions here.
+        Crucial correctness rule: a fee belongs to its order, so it must only be
+        spread over the positions of *that* order. A product line aggregates
+        positions from many orders; some paid online (with a PSP fee), some not
+        (manual import, cash at the box office). We must NOT put a fee on
+        positions whose order had none.
 
-        Returns dict rows with keys:
-            order, channel, fee_type, internal_type, total
+        Method (intra-order pro rata):
+          1. For each order with fees, get its total fee per key and its gross.
+          2. Split that order's fee across its own positions, pro rata of price,
+             aggregated per (channel, session, item, variation) line.
+          3. The cent-level rounding remainder is corrected per fee key so the
+             grand total still equals the Pretix OrderFee total.
         """
-        return (
+        # 1) fee per order and key
+        fee_rows = (
             OrderFee.objects.filter(
                 order__event_id__in=event_ids,
                 order__status__in=self.statuses,
                 **self._channel_filter(),
             )
-            .values(
-                "order",
-                "order__sales_channel__identifier",
-                "fee_type",
-                "internal_type",
-            )
+            .values("order", "fee_type", "internal_type")
             .annotate(total=Sum("value"))
-            .order_by("order", "fee_type")
         )
+        order_fees: Dict[int, Dict[str, Decimal]] = {}
+        columns: "OrderedDict[str, FeeColumn]" = OrderedDict()
+        for row in fee_rows:
+            oid = row["order"]
+            key = row["internal_type"] or row["fee_type"] or "fee"
+            if key not in columns:
+                columns[key] = FeeColumn(
+                    key=key, label=fee_label(key, row["fee_type"] or "")
+                )
+            d = order_fees.setdefault(oid, {})
+            d[key] = d.get(key, ZERO) + (row["total"] or ZERO)
+        report.fee_columns = list(columns.values())
+        if not order_fees:
+            return
 
-    def _order_session_weights(self, event_ids):
-        """Per-order gross split across sessions, used to attribute fees.
-
-        Returns {order_id: {session_key: gross}} computed by a single aggregated
-        query (group by order + subevent). Lets us spread an order-level fee over
-        the sessions the order actually sold into, pro rata of gross.
-        """
-        rows = (
+        # 2) per (order, line-key) gross, only for orders that have fees
+        line_index = self._line_index(report)
+        pos_rows = (
             OrderPosition.objects.filter(
                 order__event_id__in=event_ids,
                 order__status__in=self.statuses,
+                order_id__in=list(order_fees.keys()),
                 **self._channel_filter(),
             )
-            .values("order", "subevent")
+            .values(
+                "order",
+                "order__sales_channel__identifier",
+                "subevent",
+                "item__name",
+                "variation__value",
+            )
             .annotate(gross=Sum("price"))
         )
-        weights: Dict[int, Dict[str, Decimal]] = {}
-        for row in rows:
+        # group positions by order so we can pro-rate within each order
+        by_order: Dict[int, list] = {}
+        order_gross: Dict[int, Decimal] = {}
+        for row in pos_rows:
             oid = row["order"]
-            se_key = str(row["subevent"]) if row["subevent"] else "event"
-            weights.setdefault(oid, {})[se_key] = row["gross"] or ZERO
-        return weights
+            by_order.setdefault(oid, []).append(row)
+            order_gross[oid] = order_gross.get(oid, ZERO) + (row["gross"] or ZERO)
 
-    def _fill_fees(self, report: RecetteReport, fee_rows, weights):
-        """Attach fee totals to the right sessions and declare fee columns.
+        # 3) spread each order's fee onto its own lines, pro rata of price
+        for oid, rows in by_order.items():
+            fees = order_fees.get(oid, {})
+            base = order_gross.get(oid, ZERO)
+            paying = [r for r in rows if (r["gross"] or ZERO) > ZERO]
+            for key, total in fees.items():
+                if not paying or base <= ZERO:
+                    continue
+                acc = ZERO
+                for i, r in enumerate(paying):
+                    if i == len(paying) - 1:
+                        share = total - acc
+                    else:
+                        share = (total * (r["gross"] or ZERO) / base).quantize(
+                            Decimal("0.01")
+                        )
+                        acc += share
+                    line = self._line_for(line_index, r)
+                    if line is not None:
+                        line.fees[key] = line.fees.get(key, ZERO) + share
 
-        Each order-level fee is attributed to the session(s) of that order.
-        Single-session order: the whole fee lands there. Multi-session order:
-        the fee is split pro rata of each session's gross; if the order has no
-        positive gross (e.g. only invitations), it is split evenly.
-        """
-        # Build a lookup: (channel_key, session_key) -> RecetteSession.
-        session_index = {}
-        for ch in report.channels:
-            for se in ch.sessions:
-                session_index[(ch.key, se.key)] = se
-
-        columns: "OrderedDict[str, FeeColumn]" = OrderedDict()
-
-        for row in fee_rows:
-            ch_key = row["order__sales_channel__identifier"] or "unknown"
-            fee_type = row["fee_type"] or ""
-            internal_type = row["internal_type"] or ""
-            key = internal_type or fee_type or "fee"
-            total = row["total"] or ZERO
-            order_id = row["order"]
-
-            if key not in columns:
-                columns[key] = FeeColumn(key=key, label=fee_label(key, fee_type))
-
-            order_weights = weights.get(order_id, {})
-            self._deposit_fee(
-                session_index, ch_key, key, total, order_weights
-            )
-
-        report.fee_columns = list(columns.values())
+        # carry the per-line fee totals up to the sessions for the totals row
+        self._lift_line_fees_to_sessions(report)
 
     @staticmethod
-    def _deposit_fee(session_index, ch_key, key, total, order_weights):
-        """Add `total` for fee `key` to the order's session(s) in `ch_key`."""
-        # Sessions of this order that exist in the report for this channel.
-        present = {
-            se_key: gross
-            for se_key, gross in order_weights.items()
-            if (ch_key, se_key) in session_index
-        }
-        if not present:
-            return  # order produced no reported session (edge case): skip
+    def _line_index(report: RecetteReport) -> dict:
+        """Map (channel_key, session_key, category, nature) -> RecetteLine."""
+        index = {}
+        for ch in report.channels:
+            for se in ch.sessions:
+                for cat in se.categories:
+                    for ln in cat.lines:
+                        index[(ch.key, se.key, cat.name, ln.nature)] = ln
+        return index
 
-        base = sum(present.values(), ZERO)
-        keys = list(present.keys())
-        if base > ZERO:
-            acc = ZERO
-            for i, se_key in enumerate(keys):
-                if i == len(keys) - 1:
-                    share = total - acc  # last absorbs rounding
-                else:
-                    share = (total * present[se_key] / base).quantize(
-                        Decimal("0.01")
-                    )
-                    acc += share
-                se = session_index[(ch_key, se_key)]
-                se.fees[key] = se.fees.get(key, ZERO) + share
-        else:
-            # No positive gross (e.g. only invitations): split evenly.
-            n = len(keys)
-            acc = ZERO
-            for i, se_key in enumerate(keys):
-                if i == n - 1:
-                    share = total - acc
-                else:
-                    share = (total / n).quantize(Decimal("0.01"))
-                    acc += share
-                se = session_index[(ch_key, se_key)]
-                se.fees[key] = se.fees.get(key, ZERO) + share
+    @classmethod
+    def _line_for(cls, line_index, row):
+        ch_key = row["order__sales_channel__identifier"] or "unknown"
+        se_key = str(row["subevent"]) if row["subevent"] else "event"
+        cat = cls._label(row["item__name"]) or str(_("Product"))
+        nature = cls._label(row["variation__value"]) or str(DEFAULT_NATURE)
+        return line_index.get((ch_key, se_key, cat, nature))
+
+    @staticmethod
+    def _lift_line_fees_to_sessions(report: RecetteReport):
+        """Recompute each session's fee dict as the sum of its lines' fees."""
+        for ch in report.channels:
+            for se in ch.sessions:
+                agg: Dict[str, Decimal] = {}
+                for cat in se.categories:
+                    for ln in cat.lines:
+                        for k, v in ln.fees.items():
+                            agg[k] = agg.get(k, ZERO) + v
+                se.fees = agg
 
     @staticmethod
     def _get_or_add_session(channel: RecetteChannel, key, label):

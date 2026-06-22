@@ -17,32 +17,19 @@ from pretix.multidomain.urlreverse import get_event_domain
 logger = logging.getLogger(__name__)
 
 
-@receiver(register_data_exporters, dispatch_uid="accounting_report_psp")
-def register_accounting_psp_report(sender, **kwargs):
-    from .exporters.accounting_report_psp import AccountingReportPSPExporter
+@receiver(register_data_exporters, dispatch_uid="recette_manifestation")
+def register_recette_manifestation(sender, **kwargs):
+    from .exporters.recette_manifestation import RecetteManifestationExporter
 
-    return AccountingReportPSPExporter
-
-
-@receiver(register_multievent_data_exporters, dispatch_uid="accounting_report_psp_multi")
-def register_accounting_psp_report_multi(sender, **kwargs):
-    from .exporters.accounting_report_psp import AccountingReportPSPExporter
-
-    return AccountingReportPSPExporter
+    return RecetteManifestationExporter
 
 
-@receiver(register_data_exporters, dispatch_uid="payment_list_psp")
-def register_payment_list_psp(sender, **kwargs):
-    from .exporters.payment_list_psp import PaymentListPSPExporter
+@receiver(register_multievent_data_exporters,
+          dispatch_uid="recette_manifestation_multi")
+def register_recette_manifestation_multi(sender, **kwargs):
+    from .exporters.recette_manifestation import RecetteManifestationExporter
 
-    return PaymentListPSPExporter
-
-
-@receiver(register_multievent_data_exporters, dispatch_uid="payment_list_psp_multi")
-def register_payment_list_psp_multi(sender, **kwargs):
-    from .exporters.payment_list_psp import PaymentListPSPExporter
-
-    return PaymentListPSPExporter
+    return RecetteManifestationExporter
 
 
 @receiver(nav_organizer, dispatch_uid="payment_fees_nav_organizer")

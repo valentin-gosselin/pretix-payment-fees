@@ -217,6 +217,39 @@ def test_fees_reconcile_channel_to_report(event):
     assert summed == report.fees_total
 
 
+def test_fees_allocated_per_line(event):
+    """The session fee is spread onto its paying lines (not just the total)."""
+    report = _build(event)
+    paying_lines = [
+        ln for ch in report.channels for se in ch.sessions
+        for cat in se.categories for ln in cat.lines if ln.gross > 0
+    ]
+    # the single paying line ("Tarif plein", 40.00) carries the whole 1.50 fee
+    assert paying_lines
+    assert paying_lines[0].fees.get("mollie_creditcard_fee") == Decimal("1.50")
+    assert paying_lines[0].net == Decimal("38.50")  # 40 - 1.50
+
+
+def test_invitation_line_has_no_fee(event):
+    report = _build(event)
+    inv = [
+        ln for ch in report.channels for se in ch.sessions
+        for cat in se.categories for ln in cat.lines if ln.gross == 0
+    ]
+    assert inv
+    assert inv[0].fees == {}  # free line gets no fee
+
+
+def test_fee_reconciliation_passes(event):
+    """Per-line fee sum equals the Pretix OrderFee total (to the cent)."""
+    report = _build(event)
+    assert report.fees_reconciled
+    rec = report.fee_reconciliation()
+    assert rec["mollie_creditcard_fee"]["lines"] == Decimal("1.50")
+    assert rec["mollie_creditcard_fee"]["total"] == Decimal("1.50")
+    assert rec["mollie_creditcard_fee"]["ok"] is True
+
+
 @pytest.mark.django_db
 def test_no_fee_means_no_column():
     """An event without OrderFee yields no fee column and net == gross."""

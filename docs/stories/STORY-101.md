@@ -56,8 +56,15 @@ Décision figée STORY-000, option 2 : une colonne par PSP, identifiée par `Ord
 - [x] Cas sans aucun frais : aucune colonne, recette nette = brut, pas de crash (test `test_no_fee_means_no_column`).
 - [x] Suite pytest verte : 20/20 (16 builder + 4 signaux existants) dans pretix-dev.
 
-### Décision de maille (importante)
-Un `OrderFee` est rattaché à la **commande** (pas à une position), et ne porte ni `item` ni `subevent`. Les frais sont donc agrégés **par canal de vente** (via `order.sales_channel`) et déposés sur la séance du canal. Ils n'apparaissent PAS au niveau ligne Item x Variation (un frais ne connaît pas le produit). La maille fine par séance multiple relève de STORY-102.
+### Décision de maille (importante) — répartition intra-commande
+Un `OrderFee` est rattaché à la **commande** (pas à une position). Règle de correction essentielle : **un frais ne doit être réparti que sur les positions de SA commande**. Une ligne Produit agrège des positions venant de commandes différentes : certaines payées en ligne (avec frais PSP), d'autres sans (import manuel, espèces au guichet). Il ne faut PAS mettre de frais sur des places dont la commande n'en avait pas.
+
+Méthode (`_fill_fees`, prorata **intra-commande**) :
+1. Frais total par commande et par clé (`internal_type`/`fee_type`).
+2. Pour chaque commande à frais, répartition de son frais sur **ses propres positions** au prorata du prix, agrégée par ligne (canal/séance/item/variation).
+3. La dernière position payante absorbe l'arrondi → somme des lignes = total `OrderFee` Pretix, à la cent près.
+
+Résultat : un produit dont aucune commande n'a payé de frais (ex. « Destination Rennes » payé hors PSP) affiche **0,00 €**. Réconciliation exposée via `report.fee_reconciliation()` / `report.fees_reconciled`. *(Première version « prorata du Brut total de la ligne » corrigée après retour goss : elle mettait des frais sur des places qui n'en avaient pas.)*
 
 ---
 

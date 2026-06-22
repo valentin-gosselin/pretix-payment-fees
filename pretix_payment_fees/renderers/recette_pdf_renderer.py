@@ -60,9 +60,6 @@ L = {
     "ticketing": "Billetterie",
     "paid": "Payant",
     "invitations": "Invitations",
-    "note": ("Les colonnes de frais sont générées par prestataire de paiement "
-             "présent dans les données. Recette nette = Brut moins les frais. "
-             "Le vocabulaire suit les rapports natifs Pretix."),
 }
 
 # -- Fonts: register Pretix's OpenSans (full Unicode -> accents render). -------
@@ -158,7 +155,6 @@ class RecettePDFRenderer:
         story += self._grand_total()
         story += self._cross_view()
         story += self._ticketing()
-        story += self._footer_note()
         doc.build(story)
         return buf.getvalue()
 
@@ -410,11 +406,6 @@ class RecettePDFRenderer:
         t.setStyle(TableStyle(self._modern_table_style(data, total_row=last)))
         return [Paragraph(L["ticketing"], s["h2"]),
                 Spacer(0, 1.5 * mm), t, Spacer(0, 6 * mm)]
-
-    def _footer_note(self):
-        s = self._styles()
-        return [Spacer(0, 4 * mm), Paragraph(
-            L["note"], s["note"])]
 
 
 def cat_fees(cat):
