@@ -8,10 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Full SumUp integration testing in production environment
-- Performance optimizations for bulk exports
-- Extended test coverage (>80%)
-- API rate limiting and circuit breaker patterns
+- Order-level detail export (one row per order with categories and fee detail)
+- Venue-occupancy export for partners (ticket counts per category, no amounts)
+- Full 8-language i18n of the new export (.po extraction)
+
+## [1.1.0] - 2026-06-22
+
+### Added
+- **New export "Recettes détaillées"**: detailed revenue report by sales channel
+  and session, in PDF, CSV and Excel.
+  - Aggregation by Sales channel > Session (subevent) > Product (Item) >
+    Nature (Variation), with per-category subtotals and grand total.
+  - **Dynamic fee columns, one per PSP** (Mollie, SumUp...), derived from the
+    `OrderFee` types present in the data; humanised fallback for unknown types.
+  - **Per-line fee allocation** via intra-order pro rata: a fee is spread only
+    over the positions of its own order, so products paid outside any PSP show
+    0.00; the per-line sum reconciles exactly with the Pretix `OrderFee` total.
+  - Net revenue (gross minus fees) at line, session and channel level.
+  - Single-channel filter, cross view (Category x Session), ticketing block
+    (paid vs invitations), VAT rate per session from the tax rule.
+  - Sober editorial PDF design (A4 portrait, OpenSans, indigo accent).
+- Test suite covering builder, renderers and exporter (54 tests).
+
+### Changed
+- Renamed the plugin's accounting export surface around the new report.
+
+### Removed
+- Legacy exporters `accounting_report_psp` and `payment_list_psp` and their
+  renderers, replaced by the new "Recettes détaillées" export.
 
 ## [1.0.1] - 2026-04-22
 

@@ -39,8 +39,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pretix
-          pip install -e .
-          pip install pytest
+          pip install -e ".[dev]"
 
       - name: Run unit tests
         env:
