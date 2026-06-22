@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Dict, List, Optional
 
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.utils.translation import gettext_lazy as _
 from pretix.base.models import Order, OrderFee, OrderPosition
 
@@ -67,6 +67,12 @@ FEE_TYPE_LABELS = {
     OrderFee.FEE_TYPE_OTHER: _("Other fees"),
     OrderFee.FEE_TYPE_GIFTCARD: _("Gift card"),
 }
+
+
+def _fmt_rate(rate: Decimal) -> str:
+    """Format a VAT rate the French way: 2.10 -> '2,10 %'."""
+    s = f"{rate:.2f}".replace(".", ",")
+    return f"{s} %"
 
 
 def fee_label(key: str, fee_type: str = "") -> str:
@@ -109,7 +115,10 @@ class RecetteLine:
     nature: str                         # Variation value, or DEFAULT_NATURE
     count: int = 0
     gross: Decimal = ZERO               # sum of position prices
-    fees: dict = field(default_factory=dict)  # filled in STORY-101, empty here
+    fees: dict = field(default_factory=dict)  # filled in STORY-101
+    paid_count: int = 0                 # positions with price > 0
+    free_count: int = 0                 # positions with price == 0 (invitations)
+    tax_rate: Decimal = ZERO            # VAT rate of the line (frozen tax_rate)
 
     @property
     def unit_price(self) -> Decimal:
@@ -135,6 +144,15 @@ class RecetteCategory:
         return sum((line.gross for line in self.lines), ZERO)
 
     @property
+    def paid_count(self) -> int:
+        return sum(line.paid_count for line in self.lines)
+
+    @property
+    def free_count(self) -> int:
+        """Invitations (price 0) count for the category."""
+        return sum(line.free_count for line in self.lines)
+
+    @property
     def is_single_line(self) -> bool:
         """True when the category has a single nature (no detail/subtotal dup)."""
         return len(self.lines) == 1
@@ -153,6 +171,7 @@ class RecetteSession:
     label: str                          # human label (subevent/event name+date)
     categories: List[RecetteCategory] = field(default_factory=list)
     fees: Dict[str, Decimal] = field(default_factory=dict)  # {fee_key: amount}
+    tax_rates: set = field(default_factory=set)  # distinct VAT rates seen
 
     @property
     def count(self) -> int:
@@ -163,6 +182,15 @@ class RecetteSession:
         return sum((c.gross for c in self.categories), ZERO)
 
     @property
+    def paid_count(self) -> int:
+        return sum(c.paid_count for c in self.categories)
+
+    @property
+    def free_count(self) -> int:
+        """Invitations (price 0) count for the session."""
+        return sum(c.free_count for c in self.categories)
+
+    @property
     def fees_total(self) -> Decimal:
         return sum(self.fees.values(), ZERO)
 
@@ -170,6 +198,24 @@ class RecetteSession:
     def net(self) -> Decimal:
         """Net revenue = gross minus fees."""
         return self.gross - self.fees_total
+
+    @property
+    def tax_rate_display(self) -> str:
+        """Session VAT rate as a string, or 'mixed' when heterogeneous.
+
+        Returns e.g. "2,10 %" when a single rate applies to the session, or a
+        marker when several rates are present (renderer then shows per-line).
+        """
+        rates = sorted(self.tax_rates)
+        if not rates:
+            return ""
+        if len(rates) == 1:
+            return _fmt_rate(rates[0])
+        return str(_("mixed"))
+
+    @property
+    def tax_is_uniform(self) -> bool:
+        return len(self.tax_rates) <= 1
 
 
 @dataclass
@@ -255,6 +301,23 @@ class RecetteReport:
             rows=matrix,
         )
 
+    def ticketing(self) -> "TicketingBlock":
+        """Ticketing counts per category: paid / invitations / total.
+
+        Pretix has no e-ticket / m-ticket typology like the Trium reference, so
+        only the meaningful Pretix counts are produced (paid vs free admission).
+        Aggregates across all channels and sessions.
+        """
+        # category -> {"paid": int, "free": int}
+        rows: "OrderedDict[str, dict]" = OrderedDict()
+        for ch in self.channels:
+            for se in ch.sessions:
+                for cat in se.categories:
+                    r = rows.setdefault(cat.name, {"paid": 0, "free": 0})
+                    r["paid"] += cat.paid_count
+                    r["free"] += cat.free_count
+        return TicketingBlock(rows=rows)
+
 
 @dataclass
 class CrossView:
@@ -268,6 +331,19 @@ class CrossView:
         return {
             "count": sum(c["count"] for c in cells.values()),
             "gross": sum((c["gross"] for c in cells.values()), ZERO),
+        }
+
+
+@dataclass
+class TicketingBlock:
+    """Ticketing counts per category produced by RecetteReport.ticketing()."""
+
+    rows: "OrderedDict[str, dict]"            # category -> {"paid", "free"}
+
+    def total(self) -> dict:
+        return {
+            "paid": sum(r["paid"] for r in self.rows.values()),
+            "free": sum(r["free"] for r in self.rows.values()),
         }
 
 
@@ -397,8 +473,14 @@ class RecetteDataBuilder:
                 "item__name",
                 "variation",
                 "variation__value",
+                "tax_rate",
             )
-            .annotate(count=Count("id"), gross=Sum("price"))
+            .annotate(
+                count=Count("id"),
+                gross=Sum("price"),
+                paid_count=Count("id", filter=Q(price__gt=0)),
+                free_count=Count("id", filter=Q(price=0)),
+            )
             .order_by(
                 "order__sales_channel__label",
                 "subevent",
@@ -422,22 +504,23 @@ class RecetteDataBuilder:
             )
             cat_name = self._label(row["item__name"]) or str(_("Product"))
             nature = self._label(row["variation__value"]) or str(DEFAULT_NATURE)
-            count = row["count"] or 0
-            gross = row["gross"] or ZERO
+            tax_rate = row["tax_rate"] or ZERO
 
             channel = channels.setdefault(
                 ch_key, RecetteChannel(key=ch_key, label=ch_label)
             )
             session = self._get_or_add_session(channel, se_key, se_label)
+            session.tax_rates.add(tax_rate)
             category = self._get_or_add_category(session, cat_name)
-            category.lines.append(
-                RecetteLine(
-                    category=cat_name,
-                    nature=nature,
-                    count=count,
-                    gross=gross,
-                )
-            )
+            # Merge into an existing (category, nature) line: tax_rate is part of
+            # the group-by, so a product taxed at two rates would otherwise yield
+            # two rows. We sum the measures and keep the rates on the session.
+            line = self._get_or_add_line(category, cat_name, nature)
+            line.count += row["count"] or 0
+            line.gross += row["gross"] or ZERO
+            line.paid_count += row["paid_count"] or 0
+            line.free_count += row["free_count"] or 0
+            line.tax_rate = tax_rate
 
         report.channels = list(channels.values())
 
@@ -582,6 +665,15 @@ class RecetteDataBuilder:
         c = RecetteCategory(name=name)
         session.categories.append(c)
         return c
+
+    @staticmethod
+    def _get_or_add_line(category: RecetteCategory, cat_name, nature):
+        for line in category.lines:
+            if line.nature == nature:
+                return line
+        line = RecetteLine(category=cat_name, nature=nature)
+        category.lines.append(line)
+        return line
 
     @staticmethod
     def _label(value) -> str:

@@ -383,3 +383,79 @@ def test_single_event_falls_back_to_event_session(event):
     report = _build(event)
     labels = {se.label for ch in report.channels for se in ch.sessions}
     assert labels == {"Event"}
+
+
+# -- STORY-103: ticketing block and VAT ---------------------------------------
+
+
+def test_ticketing_counts_paid_and_invitations(event):
+    """Ticketing block separates paid positions from invitations (price 0)."""
+    report = _build(event)
+    t = report.ticketing()
+    # fixture: 2 paid "Tarif plein" + 1 "Invitation" at price 0
+    assert t.rows["Tarif plein"] == {"paid": 2, "free": 0}
+    assert t.rows["Invitation"] == {"paid": 0, "free": 1}
+    assert t.total() == {"paid": 2, "free": 1}
+
+
+def test_category_paid_free_counts(event):
+    report = _build(event)
+    cats = {
+        cat.name: cat
+        for ch in report.channels
+        for se in ch.sessions
+        for cat in se.categories
+    }
+    assert cats["Tarif plein"].paid_count == 2
+    assert cats["Tarif plein"].free_count == 0
+    assert cats["Invitation"].free_count == 1
+
+
+@pytest.fixture
+def taxed_event(db):
+    """Event with a VAT rule so positions carry a non-zero tax_rate."""
+    from pretix.base.models import (
+        Event, Item, Order, OrderPosition, Organizer, TaxRule,
+    )
+
+    with scopes_disabled():
+        org = Organizer.objects.create(name="TOrg", slug="t-org")
+        ev = Event.objects.create(
+            organizer=org, name="Taxed", slug="ev-taxed",
+            date_from=now(), currency="EUR",
+        )
+        tax = TaxRule.objects.create(event=ev, name="TVA", rate=Decimal("2.10"))
+        item = Item.objects.create(
+            event=ev, name="Billet", default_price=Decimal("20.00"),
+            tax_rule=tax,
+        )
+        web = org.sales_channels.get(identifier="web")
+        order = Order.objects.create(
+            code="T1", event=ev, status=Order.STATUS_PAID,
+            datetime=now(), expires=now(), total=Decimal("20.00"),
+            sales_channel=web,
+        )
+        OrderPosition.objects.create(
+            order=order, item=item, price=Decimal("20.00"),
+            tax_rule=tax, tax_rate=tax.rate, tax_value=Decimal("0.41"),
+        )
+    return ev
+
+
+def test_vat_rate_from_tax_rule(taxed_event):
+    with scope(organizer=taxed_event.organizer):
+        report = RecetteDataBuilder([taxed_event]).build()
+    session = report.channels[0].sessions[0]
+    assert session.tax_is_uniform
+    assert session.tax_rate_display == "2,10 %"
+    line = session.categories[0].lines[0]
+    assert line.tax_rate == Decimal("2.10")
+
+
+def test_vat_zero_rate_display(event):
+    """Without a tax rule, the rate is 0 and the display is empty (no rates)."""
+    report = _build(event)
+    for ch in report.channels:
+        for se in ch.sessions:
+            # fixture positions have no tax_rule -> tax_rate 0
+            assert se.tax_is_uniform

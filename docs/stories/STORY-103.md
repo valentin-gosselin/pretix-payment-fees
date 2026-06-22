@@ -3,8 +3,8 @@
 **Epic:** Export comptable « Recette Manifestation »
 **Priority:** Should Have
 **Story Points:** 3
-**Status:** Not Started
-**Assigned To:** Unassigned
+**Status:** Done (implémenté, validé sur event de démo, suite pytest verte 30/30)
+**Assigned To:** goss
 **Created:** 2026-06-22
 **Sprint:** Recette Manifestation, phase 2
 
@@ -41,12 +41,16 @@ Le rapport Trium de référence affiche un bloc billetterie (Total payant / Invi
 
 ## Acceptance Criteria
 
-- [ ] Bloc billetterie par catégorie : payant, invitations (recette 0), places échangées, e-ticket (et modes non applicables à 0).
-- [ ] Total payant + invitations cohérent avec le nombre de positions du périmètre.
-- [ ] Le taux de TVA affiché provient de la `TaxRule` réelle des produits.
-- [ ] Taux affiché par séance si homogène, sinon par ligne.
-- [ ] Cas TVA 0,00 % (cas réel Gosselico) géré correctement.
-- [ ] Cas taux multiples sur une même séance géré sans confusion.
+- [x] Bloc billetterie par catégorie : payant + invitations (`report.ticketing()` -> `TicketingBlock`). Les modes de délivrance e-ticket/m-ticket/billetcollector de Trium n'existent pas dans Pretix : non inventés (voir note).
+- [x] Total payant + invitations cohérent avec le périmètre (test `test_ticketing_counts_paid_and_invitations`).
+- [x] Le taux de TVA provient de `OrderPosition.tax_rate` (figé depuis la `TaxRule`).
+- [x] Taux affiché par séance (`session.tax_rate_display`) si homogène ; marqueur « mixed » + `tax_is_uniform=False` si plusieurs taux (le renderer affichera alors par ligne via `line.tax_rate`).
+- [x] Cas TVA 0,00 % géré (pas de taux -> `tax_is_uniform` vrai, affichage vide).
+- [x] Cas taux multiples : `tax_rates` (set) sur la séance, `tax_rate_display="mixed"`.
+- [x] Suite pytest verte : 30/30.
+
+### Note billetterie (vocabulaire)
+Trium détaille e-ticket / m-ticket / billetcollector / places échangées. Ces notions sont **propres à TicketNet**, absentes du modèle Pretix. Conformément à la décision « ne pas inventer », le bloc se limite aux comptages Pretix réels : **payant** (prix > 0) et **invitations** (prix 0). Les modes de délivrance ne sont pas fabriqués.
 
 ---
 
@@ -100,12 +104,23 @@ Rester sur le vocabulaire Pretix. Ne pas inventer de notion absente de Pretix (d
 
 ---
 
+## Implementation Notes
+
+- **Builder :** `RecetteLine` enrichie (`paid_count`, `free_count`, `tax_rate`), propriétés `paid_count`/`free_count` sur Category/Session, `tax_rates` (set) + `tax_rate_display`/`tax_is_uniform` sur Session, `report.ticketing()` -> `TicketingBlock`, helper `_fmt_rate()` (format FR « 2,10 % »), `_get_or_add_line()` (fusionne les lignes par cat/nature quand le group-by `tax_rate` les scinderait).
+- **Requête :** `_aggregate` ajoute `tax_rate` au group-by + `Count(filter=Q(price__gt=0))` / `Q(price=0)` pour payant/invitation. Toujours une seule requête agrégée.
+- **TVA :** lue depuis `OrderPosition.tax_rate` (taux figé à l'achat, fiable même si la TaxRule change après). Affichage par séance si uniforme, sinon « mixed » + détail par ligne disponible.
+- **Billetterie :** uniquement payant/invitations (notions Pretix réelles). Pas de e-ticket/m-ticket (absent de Pretix).
+- **Validé :** recette-demo (Place 6 payants, Invitation 2 gratuits, TVA 2,10 %) + non-régression. pytest 30/30.
+
+---
+
 ## Progress Tracking
 
 **Status History:**
 - 2026-06-22 : Créée par goss.
+- 2026-06-22 : Implémentée. Bloc billetterie (payant/invitations) + TVA par séance/ligne depuis tax_rate. pytest 30/30. Statut Done.
 
-**Actual Effort:** TBD
+**Actual Effort:** ~3 points (conforme).
 
 ---
 
