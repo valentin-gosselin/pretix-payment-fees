@@ -18,6 +18,8 @@ import io
 import os
 from decimal import Decimal
 
+from django.utils.translation import gettext_lazy as _
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -36,30 +38,31 @@ from reportlab.platypus import (
 
 ZERO = Decimal("0.00")
 
-# Labels, frozen in French to match the STORY-000 mock and the Pretix FR
-# vocabulary. Full gettext-based i18n (8 languages) is wired in STORY-106; until
-# then the renderer uses these constants so the PDF reads correctly in French.
+# Labels translated via gettext_lazy (source strings in French, the plugin's
+# reference language). The lazy proxies resolve to the active language at render
+# time, so the PDF follows the Pretix user's locale. Translations live in the
+# per-language .po files (de/es/nl/it/pt/pl/en).
 L = {
-    "title": "Rapport de recette",
-    "organizer": "Organisateur",
-    "event": "Événement",
-    "date": "Date",
-    "location": "Lieu",
-    "currency": "Devise",
-    "generated": "Édité le",
-    "sales_channel": "Canal de vente",
-    "vat_rate": "taux de TVA",
-    "product": "Produit",
-    "count": "Quantité",
-    "unit_price": "Prix unitaire",
-    "gross": "Brut",
-    "net": "Recette nette",
-    "total": "Total",
-    "grand_total": "Total tous canaux de vente",
-    "by_session": "Recette par séance",
-    "ticketing": "Billetterie",
-    "paid": "Payant",
-    "invitations": "Invitations",
+    "title": _("Rapport de recette"),
+    "organizer": _("Organisateur"),
+    "event": _("Événement"),
+    "date": _("Date"),
+    "location": _("Lieu"),
+    "currency": _("Devise"),
+    "generated": _("Édité le"),
+    "sales_channel": _("Canal de vente"),
+    "vat_rate": _("taux de TVA"),
+    "product": _("Produit"),
+    "count": _("Quantité"),
+    "unit_price": _("Prix unitaire"),
+    "gross": _("Brut"),
+    "net": _("Recette nette"),
+    "total": _("Total"),
+    "grand_total": _("Total tous canaux de vente"),
+    "by_session": _("Recette par séance"),
+    "ticketing": _("Billetterie"),
+    "paid": _("Payant"),
+    "invitations": _("Invitations"),
 }
 
 # -- Fonts: register Pretix's OpenSans (full Unicode -> accents render). -------

@@ -973,3 +973,149 @@ msgstr "# Biglietti"
 
 msgid "Fee/ticket"
 msgstr "Commissione/biglietto"
+
+# --- Recettes détaillées export (auto) ---
+
+msgid "Rapport de recette"
+msgstr "Rapporto di ricavo"
+
+msgid "Recette"
+msgstr "Ricavo"
+
+msgid "Organisateur"
+msgstr "Organizzatore"
+
+msgid "Événement"
+msgstr "Evento"
+
+msgid "Lieu"
+msgstr "Luogo"
+
+msgid "Devise"
+msgstr "Valuta"
+
+msgid "Édité le"
+msgstr "Generato il"
+
+msgid "Canal de vente"
+msgstr "Canale di vendita"
+
+msgid "Séance"
+msgstr "Sessione"
+
+msgid "taux de TVA"
+msgstr "aliquota IVA"
+
+msgid "Taux de TVA"
+msgstr "Aliquota IVA"
+
+msgid "Produit"
+msgstr "Prodotto"
+
+msgid "Product"
+msgstr "Prodotto"
+
+msgid "Nature"
+msgstr "Tipo"
+
+msgid "Quantité"
+msgstr "Quantità"
+
+msgid "Prix unitaire"
+msgstr "Prezzo unitario"
+
+msgid "Brut"
+msgstr "Lordo"
+
+msgid "Recette nette"
+msgstr "Ricavo netto"
+
+msgid "Total tous canaux de vente"
+msgstr "Totale di tutti i canali di vendita"
+
+msgid "Recette par séance"
+msgstr "Ricavo per sessione"
+
+msgid "Billetterie"
+msgstr "Biglietteria"
+
+msgid "Payant"
+msgstr "A pagamento"
+
+msgid "Invitations"
+msgstr "Inviti"
+
+msgid "Type de ligne"
+msgstr "Tipo di riga"
+
+msgid "(default)"
+msgstr "(predefinito)"
+
+msgid "mixed"
+msgstr "misto"
+
+msgid "Frais"
+msgstr "Commissione"
+
+msgid "Frais de paiement"
+msgstr "Commissione di pagamento"
+
+msgid "Frais de service"
+msgstr "Commissione di servizio"
+
+msgid "Frais de livraison"
+msgstr "Spese di spedizione"
+
+msgid "Frais d'annulation"
+msgstr "Commissione di annullamento"
+
+msgid "Frais d'assurance"
+msgstr "Commissione assicurativa"
+
+msgid "Frais de retard"
+msgstr "Mora"
+
+msgid "Autres frais"
+msgstr "Altre commissioni"
+
+msgid "Carte cadeau"
+msgstr "Carta regalo"
+
+msgid "Frais Mollie (CB)"
+msgstr "Commissione Mollie (carta)"
+
+msgid "Frais Mollie (iDEAL)"
+msgstr "Commissione Mollie (iDEAL)"
+
+msgid "Frais Mollie (Bancontact)"
+msgstr "Commissione Mollie (Bancontact)"
+
+msgid "Frais SumUp"
+msgstr "Commissione SumUp"
+
+msgid "Recettes détaillées"
+msgstr "Ricavi dettagliati"
+
+msgid "Période (date de commande)"
+msgstr "Periodo (data ordine)"
+
+msgid "Statut de la commande"
+msgstr "Stato dell'ordine"
+
+msgid "Format d'export"
+msgstr "Formato di esportazione"
+
+msgid "Tous les canaux"
+msgstr "Tutti i canali"
+
+msgid "Payées uniquement"
+msgstr "Solo pagati"
+
+msgid "Payées et en attente"
+msgstr "Pagati e in attesa"
+
+msgid "Paid"
+msgstr "Pagato"
+
+msgid "Pending"
+msgstr "In attesa"

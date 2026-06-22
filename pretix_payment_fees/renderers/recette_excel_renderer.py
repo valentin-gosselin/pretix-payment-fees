@@ -9,6 +9,8 @@ from decimal import Decimal
 
 import io
 
+from django.utils.translation import gettext as _
+
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
@@ -36,7 +38,7 @@ class RecetteExcelRenderer:
     def render(self) -> bytes:
         wb = Workbook()
         ws = wb.active
-        ws.title = "Recette"
+        ws.title = str(_("Recette"))
 
         headers = column_headers(self.report)
         ncols = len(headers)

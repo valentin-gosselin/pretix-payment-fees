@@ -10,7 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Order-level detail export (one row per order with categories and fee detail)
 - Venue-occupancy export for partners (ticket counts per category, no amounts)
-- Full 8-language i18n of the new export (.po extraction)
+
+## [1.1.1] - 2026-06-22
+
+### Added
+- Full i18n of the "Recettes détaillées" export in the 8 plugin languages
+  (fr/en/de/es/nl/it/pt/pl): all PDF/CSV/Excel labels, fee labels, the export
+  name and form fields now follow the Pretix user's language. French source
+  strings via gettext_lazy, compiled .mo shipped in the package.
 
 ## [1.1.0] - 2026-06-22
 

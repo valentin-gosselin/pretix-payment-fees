@@ -9,6 +9,7 @@ import io
 from decimal import Decimal
 
 import pytest
+from django.utils import translation
 from django.utils.timezone import now
 from django_scopes import scope, scopes_disabled
 
@@ -73,11 +74,12 @@ def _report(event):
 
 
 def test_headers_include_dynamic_fee_columns(event):
-    report = _report(event)
-    head = column_headers(report)
-    assert "Frais Mollie (CB)" in head
-    assert head[0] == "Canal de vente"
-    assert head[-1] == "Type de ligne"
+    with translation.override("fr"):
+        report = _report(event)  # fee column labels are frozen at build time
+        head = column_headers(report)
+        assert "Frais Mollie (CB)" in head
+        assert head[0] == "Canal de vente"
+        assert head[-1] == "Type de ligne"
 
 
 def test_flatten_grand_total_reconciles(event):
@@ -97,10 +99,10 @@ def test_csv_is_utf8_bom(event):
 
 
 def test_csv_accents_roundtrip(event):
-    data = RecetteCSVRenderer(_report(event)).render()
+    with translation.override("fr"):
+        data = RecetteCSVRenderer(_report(event)).render()
     text = data.decode("utf-8")
-    assert "Évènement" not in text  # event name not in body, but accents work
-    assert "Recette nette" in text  # accented header survives encoding
+    assert "Recette nette" in text  # accented header survives encoding (FR)
 
 
 def test_csv_has_grand_total_row(event):

@@ -983,3 +983,149 @@ msgstr "# Tickets"
 
 msgid "Fee/ticket"
 msgstr "Kosten/ticket"
+
+# --- Recettes détaillées export (auto) ---
+
+msgid "Rapport de recette"
+msgstr "Omzetrapport"
+
+msgid "Recette"
+msgstr "Omzet"
+
+msgid "Organisateur"
+msgstr "Organisator"
+
+msgid "Événement"
+msgstr "Evenement"
+
+msgid "Lieu"
+msgstr "Locatie"
+
+msgid "Devise"
+msgstr "Valuta"
+
+msgid "Édité le"
+msgstr "Gegenereerd op"
+
+msgid "Canal de vente"
+msgstr "Verkoopkanaal"
+
+msgid "Séance"
+msgstr "Voorstelling"
+
+msgid "taux de TVA"
+msgstr "btw-tarief"
+
+msgid "Taux de TVA"
+msgstr "Btw-tarief"
+
+msgid "Produit"
+msgstr "Product"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Nature"
+msgstr "Soort"
+
+msgid "Quantité"
+msgstr "Aantal"
+
+msgid "Prix unitaire"
+msgstr "Eenheidsprijs"
+
+msgid "Brut"
+msgstr "Bruto"
+
+msgid "Recette nette"
+msgstr "Netto-omzet"
+
+msgid "Total tous canaux de vente"
+msgstr "Totaal over alle verkoopkanalen"
+
+msgid "Recette par séance"
+msgstr "Omzet per voorstelling"
+
+msgid "Billetterie"
+msgstr "Ticketing"
+
+msgid "Payant"
+msgstr "Betaald"
+
+msgid "Invitations"
+msgstr "Uitnodigingen"
+
+msgid "Type de ligne"
+msgstr "Rijtype"
+
+msgid "(default)"
+msgstr "(standaard)"
+
+msgid "mixed"
+msgstr "gemengd"
+
+msgid "Frais"
+msgstr "Kosten"
+
+msgid "Frais de paiement"
+msgstr "Betaalkosten"
+
+msgid "Frais de service"
+msgstr "Servicekosten"
+
+msgid "Frais de livraison"
+msgstr "Verzendkosten"
+
+msgid "Frais d'annulation"
+msgstr "Annuleringskosten"
+
+msgid "Frais d'assurance"
+msgstr "Verzekeringskosten"
+
+msgid "Frais de retard"
+msgstr "Toeslag te laat"
+
+msgid "Autres frais"
+msgstr "Overige kosten"
+
+msgid "Carte cadeau"
+msgstr "Cadeaukaart"
+
+msgid "Frais Mollie (CB)"
+msgstr "Mollie-kosten (kaart)"
+
+msgid "Frais Mollie (iDEAL)"
+msgstr "Mollie-kosten (iDEAL)"
+
+msgid "Frais Mollie (Bancontact)"
+msgstr "Mollie-kosten (Bancontact)"
+
+msgid "Frais SumUp"
+msgstr "SumUp-kosten"
+
+msgid "Recettes détaillées"
+msgstr "Gedetailleerde omzet"
+
+msgid "Période (date de commande)"
+msgstr "Periode (besteldatum)"
+
+msgid "Statut de la commande"
+msgstr "Bestelstatus"
+
+msgid "Format d'export"
+msgstr "Exportformaat"
+
+msgid "Tous les canaux"
+msgstr "Alle kanalen"
+
+msgid "Payées uniquement"
+msgstr "Alleen betaald"
+
+msgid "Payées et en attente"
+msgstr "Betaald en in afwachting"
+
+msgid "Paid"
+msgstr "Betaald"
+
+msgid "Pending"
+msgstr "In afwachting"

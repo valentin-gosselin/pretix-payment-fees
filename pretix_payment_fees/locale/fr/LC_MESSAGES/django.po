@@ -871,3 +871,149 @@ msgstr "# Billets"
 
 msgid "Fee/ticket"
 msgstr "Frais/billet"
+
+# --- Recettes détaillées export (auto) ---
+
+msgid "Rapport de recette"
+msgstr "Rapport de recette"
+
+msgid "Recette"
+msgstr "Recette"
+
+msgid "Organisateur"
+msgstr "Organisateur"
+
+msgid "Événement"
+msgstr "Événement"
+
+msgid "Lieu"
+msgstr "Lieu"
+
+msgid "Devise"
+msgstr "Devise"
+
+msgid "Édité le"
+msgstr "Édité le"
+
+msgid "Canal de vente"
+msgstr "Canal de vente"
+
+msgid "Séance"
+msgstr "Séance"
+
+msgid "taux de TVA"
+msgstr "taux de TVA"
+
+msgid "Taux de TVA"
+msgstr "Taux de TVA"
+
+msgid "Produit"
+msgstr "Produit"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Nature"
+msgstr "Nature"
+
+msgid "Quantité"
+msgstr "Quantité"
+
+msgid "Prix unitaire"
+msgstr "Prix unitaire"
+
+msgid "Brut"
+msgstr "Brut"
+
+msgid "Recette nette"
+msgstr "Recette nette"
+
+msgid "Total tous canaux de vente"
+msgstr "Total tous canaux de vente"
+
+msgid "Recette par séance"
+msgstr "Recette par séance"
+
+msgid "Billetterie"
+msgstr "Billetterie"
+
+msgid "Payant"
+msgstr "Payant"
+
+msgid "Invitations"
+msgstr "Invitations"
+
+msgid "Type de ligne"
+msgstr "Type de ligne"
+
+msgid "(default)"
+msgstr "(default)"
+
+msgid "mixed"
+msgstr "mixed"
+
+msgid "Frais"
+msgstr "Frais"
+
+msgid "Frais de paiement"
+msgstr "Frais de paiement"
+
+msgid "Frais de service"
+msgstr "Frais de service"
+
+msgid "Frais de livraison"
+msgstr "Frais de livraison"
+
+msgid "Frais d'annulation"
+msgstr "Frais d'annulation"
+
+msgid "Frais d'assurance"
+msgstr "Frais d'assurance"
+
+msgid "Frais de retard"
+msgstr "Frais de retard"
+
+msgid "Autres frais"
+msgstr "Autres frais"
+
+msgid "Carte cadeau"
+msgstr "Carte cadeau"
+
+msgid "Frais Mollie (CB)"
+msgstr "Frais Mollie (CB)"
+
+msgid "Frais Mollie (iDEAL)"
+msgstr "Frais Mollie (iDEAL)"
+
+msgid "Frais Mollie (Bancontact)"
+msgstr "Frais Mollie (Bancontact)"
+
+msgid "Frais SumUp"
+msgstr "Frais SumUp"
+
+msgid "Recettes détaillées"
+msgstr "Recettes détaillées"
+
+msgid "Période (date de commande)"
+msgstr "Période (date de commande)"
+
+msgid "Statut de la commande"
+msgstr "Statut de la commande"
+
+msgid "Format d'export"
+msgstr "Format d'export"
+
+msgid "Tous les canaux"
+msgstr "Tous les canaux"
+
+msgid "Payées uniquement"
+msgstr "Payées uniquement"
+
+msgid "Payées et en attente"
+msgstr "Payées et en attente"
+
+msgid "Paid"
+msgstr "Paid"
+
+msgid "Pending"
+msgstr "Pending"

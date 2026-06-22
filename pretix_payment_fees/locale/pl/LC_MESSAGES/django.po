@@ -983,3 +983,149 @@ msgstr "# Biletów"
 
 msgid "Fee/ticket"
 msgstr "Opłata/bilet"
+
+# --- Recettes détaillées export (auto) ---
+
+msgid "Rapport de recette"
+msgstr "Raport przychodów"
+
+msgid "Recette"
+msgstr "Przychód"
+
+msgid "Organisateur"
+msgstr "Organizator"
+
+msgid "Événement"
+msgstr "Wydarzenie"
+
+msgid "Lieu"
+msgstr "Miejsce"
+
+msgid "Devise"
+msgstr "Waluta"
+
+msgid "Édité le"
+msgstr "Wygenerowano"
+
+msgid "Canal de vente"
+msgstr "Kanał sprzedaży"
+
+msgid "Séance"
+msgstr "Sesja"
+
+msgid "taux de TVA"
+msgstr "stawka VAT"
+
+msgid "Taux de TVA"
+msgstr "Stawka VAT"
+
+msgid "Produit"
+msgstr "Produkt"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Nature"
+msgstr "Rodzaj"
+
+msgid "Quantité"
+msgstr "Ilość"
+
+msgid "Prix unitaire"
+msgstr "Cena jednostkowa"
+
+msgid "Brut"
+msgstr "Brutto"
+
+msgid "Recette nette"
+msgstr "Przychód netto"
+
+msgid "Total tous canaux de vente"
+msgstr "Razem dla wszystkich kanałów sprzedaży"
+
+msgid "Recette par séance"
+msgstr "Przychód wg sesji"
+
+msgid "Billetterie"
+msgstr "Bilety"
+
+msgid "Payant"
+msgstr "Płatne"
+
+msgid "Invitations"
+msgstr "Zaproszenia"
+
+msgid "Type de ligne"
+msgstr "Typ wiersza"
+
+msgid "(default)"
+msgstr "(domyślny)"
+
+msgid "mixed"
+msgstr "mieszany"
+
+msgid "Frais"
+msgstr "Opłata"
+
+msgid "Frais de paiement"
+msgstr "Opłata za płatność"
+
+msgid "Frais de service"
+msgstr "Opłata serwisowa"
+
+msgid "Frais de livraison"
+msgstr "Opłata za wysyłkę"
+
+msgid "Frais d'annulation"
+msgstr "Opłata za anulowanie"
+
+msgid "Frais d'assurance"
+msgstr "Opłata ubezpieczeniowa"
+
+msgid "Frais de retard"
+msgstr "Opłata za zwłokę"
+
+msgid "Autres frais"
+msgstr "Inne opłaty"
+
+msgid "Carte cadeau"
+msgstr "Karta podarunkowa"
+
+msgid "Frais Mollie (CB)"
+msgstr "Opłata Mollie (karta)"
+
+msgid "Frais Mollie (iDEAL)"
+msgstr "Opłata Mollie (iDEAL)"
+
+msgid "Frais Mollie (Bancontact)"
+msgstr "Opłata Mollie (Bancontact)"
+
+msgid "Frais SumUp"
+msgstr "Opłata SumUp"
+
+msgid "Recettes détaillées"
+msgstr "Szczegółowe przychody"
+
+msgid "Période (date de commande)"
+msgstr "Okres (data zamówienia)"
+
+msgid "Statut de la commande"
+msgstr "Status zamówienia"
+
+msgid "Format d'export"
+msgstr "Format eksportu"
+
+msgid "Tous les canaux"
+msgstr "Wszystkie kanały"
+
+msgid "Payées uniquement"
+msgstr "Tylko opłacone"
+
+msgid "Payées et en attente"
+msgstr "Opłacone i oczekujące"
+
+msgid "Paid"
+msgstr "Opłacone"
+
+msgid "Pending"
+msgstr "Oczekujące"

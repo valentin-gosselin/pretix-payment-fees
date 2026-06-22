@@ -818,3 +818,140 @@ msgstr "Event"
 msgid "Êtes-vous sûr de vouloir déconnecter Mollie Connect ?"
 msgstr ""
 
+
+# --- Recettes détaillées export (auto) ---
+
+msgid "Rapport de recette"
+msgstr "Revenue report"
+
+msgid "Recette"
+msgstr "Revenue"
+
+msgid "Organisateur"
+msgstr "Organizer"
+
+msgid "Lieu"
+msgstr "Location"
+
+msgid "Devise"
+msgstr "Currency"
+
+msgid "Édité le"
+msgstr "Generated on"
+
+msgid "Canal de vente"
+msgstr "Sales channel"
+
+msgid "Séance"
+msgstr "Session"
+
+msgid "taux de TVA"
+msgstr "VAT rate"
+
+msgid "Taux de TVA"
+msgstr "VAT rate"
+
+msgid "Produit"
+msgstr "Product"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Nature"
+msgstr "Type"
+
+msgid "Quantité"
+msgstr "Count"
+
+msgid "Prix unitaire"
+msgstr "Unit price"
+
+msgid "Brut"
+msgstr "Gross"
+
+msgid "Recette nette"
+msgstr "Net revenue"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total tous canaux de vente"
+msgstr "Total across all sales channels"
+
+msgid "Recette par séance"
+msgstr "Revenue by session"
+
+msgid "Billetterie"
+msgstr "Ticketing"
+
+msgid "Payant"
+msgstr "Paid"
+
+msgid "Invitations"
+msgstr "Invitations"
+
+msgid "Type de ligne"
+msgstr "Row type"
+
+msgid "(default)"
+msgstr "(default)"
+
+msgid "mixed"
+msgstr "mixed"
+
+msgid "Frais"
+msgstr "Fee"
+
+msgid "Frais de paiement"
+msgstr "Payment fee"
+
+msgid "Frais de service"
+msgstr "Service fee"
+
+msgid "Frais de livraison"
+msgstr "Shipping fee"
+
+msgid "Frais d'annulation"
+msgstr "Cancellation fee"
+
+msgid "Frais d'assurance"
+msgstr "Insurance fee"
+
+msgid "Frais de retard"
+msgstr "Late fee"
+
+msgid "Autres frais"
+msgstr "Other fees"
+
+msgid "Carte cadeau"
+msgstr "Gift card"
+
+msgid "Frais Mollie (CB)"
+msgstr "Mollie fee (card)"
+
+msgid "Recettes détaillées"
+msgstr "Detailed revenue"
+
+msgid "Période (date de commande)"
+msgstr "Period (order date)"
+
+msgid "Statut de la commande"
+msgstr "Order status"
+
+msgid "Format d'export"
+msgstr "Export format"
+
+msgid "Tous les canaux"
+msgstr "All channels"
+
+msgid "Payées uniquement"
+msgstr "Paid only"
+
+msgid "Payées et en attente"
+msgstr "Paid and pending"
+
+msgid "Paid"
+msgstr "Paid"
+
+msgid "Pending"
+msgstr "Pending"

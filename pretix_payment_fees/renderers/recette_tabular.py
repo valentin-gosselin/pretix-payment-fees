@@ -11,18 +11,21 @@ gross, one cell per dynamic fee column, net revenue, plus a "kind" marker
 """
 from decimal import Decimal
 
-# French labels (Pretix vocabulary, frozen STORY-000). Full i18n in STORY-106.
+from django.utils.translation import gettext_lazy as _
+
+# Column labels translated via gettext_lazy (source strings in French, resolved
+# to the user's language at export time). Translations live in the .po files.
 COLS = {
-    "channel": "Canal de vente",
-    "session": "Séance",
-    "product": "Produit",
-    "nature": "Nature",
-    "count": "Quantité",
-    "unit_price": "Prix unitaire",
-    "gross": "Brut",
-    "net": "Recette nette",
-    "kind": "Type de ligne",
-    "vat": "Taux de TVA",
+    "channel": _("Canal de vente"),
+    "session": _("Séance"),
+    "product": _("Produit"),
+    "nature": _("Nature"),
+    "count": _("Quantité"),
+    "unit_price": _("Prix unitaire"),
+    "gross": _("Brut"),
+    "net": _("Recette nette"),
+    "kind": _("Type de ligne"),
+    "vat": _("Taux de TVA"),
 }
 
 KIND_DETAIL = "detail"
@@ -34,14 +37,15 @@ ZERO = Decimal("0.00")
 
 
 def column_headers(report):
-    """Ordered header labels: fixed columns + one per dynamic fee column."""
+    """Ordered header labels (plain strings): fixed columns + dynamic fees."""
     head = [
         COLS["channel"], COLS["session"], COLS["product"], COLS["nature"],
         COLS["vat"], COLS["count"], COLS["unit_price"], COLS["gross"],
     ]
     head += [c.label for c in report.fee_columns]
     head += [COLS["net"], COLS["kind"]]
-    return head
+    # resolve lazy proxies to plain strings for csv/openpyxl writers
+    return [str(h) for h in head]
 
 
 def _fee_values(fees, report):
