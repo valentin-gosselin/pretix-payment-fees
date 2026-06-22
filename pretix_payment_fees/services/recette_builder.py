@@ -229,6 +229,47 @@ class RecetteReport:
     def net(self) -> Decimal:
         return self.gross - self.fees_total
 
+    def cross_view(self) -> "CrossView":
+        """Category x Session matrix (Trium pages 2-3 equivalent).
+
+        Aggregates across all channels: for each category, the count and gross
+        per session, plus row totals. Sessions are ordered by first appearance.
+        """
+        session_order: "OrderedDict[str, str]" = OrderedDict()
+        # category -> session_key -> {"count": int, "gross": Decimal}
+        matrix: "OrderedDict[str, OrderedDict[str, dict]]" = OrderedDict()
+
+        for ch in self.channels:
+            for se in ch.sessions:
+                session_order.setdefault(se.key, se.label)
+                for cat in se.categories:
+                    cat_row = matrix.setdefault(cat.name, OrderedDict())
+                    cell = cat_row.setdefault(
+                        se.key, {"count": 0, "gross": ZERO}
+                    )
+                    cell["count"] += cat.count
+                    cell["gross"] += cat.gross
+
+        return CrossView(
+            sessions=list(session_order.items()),  # [(key, label), ...]
+            rows=matrix,
+        )
+
+
+@dataclass
+class CrossView:
+    """Category x Session matrix produced by RecetteReport.cross_view()."""
+
+    sessions: List[tuple]                     # [(session_key, label), ...]
+    rows: "OrderedDict[str, OrderedDict[str, dict]]"
+
+    def row_total(self, category: str) -> dict:
+        cells = self.rows.get(category, {})
+        return {
+            "count": sum(c["count"] for c in cells.values()),
+            "gross": sum((c["gross"] for c in cells.values()), ZERO),
+        }
+
 
 class RecetteDataBuilder:
     """Aggregate Pretix orders into a neutral RecetteReport.
@@ -245,6 +286,10 @@ class RecetteDataBuilder:
         self.events = events
         self.form_data = form_data or {}
         self.statuses = self.form_data.get("statuses") or DEFAULT_STATUSES
+        # Optional single-channel filter (sales channel identifier). When set,
+        # the report is restricted to that channel; otherwise all channels are
+        # rendered as separate sections plus a grand total.
+        self.channel = self.form_data.get("channel") or None
 
     # -- public API ---------------------------------------------------------
 
@@ -259,7 +304,8 @@ class RecetteDataBuilder:
         self._fill_report(report, rows)
 
         fee_rows = self._aggregate_fees(event_ids)
-        self._fill_fees(report, fee_rows)
+        weights = self._order_session_weights(event_ids)
+        self._fill_fees(report, fee_rows, weights)
         return report
 
     def reconcile_with_cache(self, report: RecetteReport) -> dict:
@@ -313,6 +359,12 @@ class RecetteDataBuilder:
 
     # -- internals ----------------------------------------------------------
 
+    def _channel_filter(self) -> dict:
+        """ORM filter kwargs restricting to a single sales channel, if set."""
+        if self.channel:
+            return {"order__sales_channel__identifier": self.channel}
+        return {}
+
     def _resolve_currency(self) -> str:
         currencies = {getattr(e, "currency", None) for e in self.events}
         currencies.discard(None)
@@ -333,12 +385,14 @@ class RecetteDataBuilder:
             OrderPosition.objects.filter(
                 order__event_id__in=event_ids,
                 order__status__in=self.statuses,
+                **self._channel_filter(),
             )
             .values(
                 "order__sales_channel__identifier",
                 "order__sales_channel__label",
                 "subevent",
                 "subevent__name",
+                "subevent__date_from",
                 "item",
                 "item__name",
                 "variation",
@@ -363,7 +417,9 @@ class RecetteDataBuilder:
             ch_label = self._label(row["order__sales_channel__label"]) \
                 or ch_key
             se_key = str(row["subevent"]) if row["subevent"] else "event"
-            se_label = self._label(row["subevent__name"]) or str(_("Event"))
+            se_label = self._session_label(
+                row["subevent__name"], row["subevent__date_from"]
+            )
             cat_name = self._label(row["item__name"]) or str(_("Product"))
             nature = self._label(row["variation__value"]) or str(DEFAULT_NATURE)
             count = row["count"] or 0
@@ -386,38 +442,70 @@ class RecetteDataBuilder:
         report.channels = list(channels.values())
 
     def _aggregate_fees(self, event_ids):
-        """Aggregated ORM query over OrderFee, grouped by channel and fee key.
+        """Aggregated ORM query over OrderFee, grouped by order and fee key.
 
-        An OrderFee belongs to an Order (not to a position), so fees are
-        attributed via the order's sales channel. The fee key is the
-        internal_type when present, else the fee_type. No per-order Python loop.
+        An OrderFee belongs to an Order (not to a position), so it carries no
+        item or subevent. We group per order + channel + fee key, then attribute
+        each order's fee to its session(s) in _fill_fees (pro rata of gross when
+        the order spans several sessions). The fee key is the internal_type when
+        present, else the fee_type. No per-order loop over positions here.
 
         Returns dict rows with keys:
-            channel, fee_type, internal_type, total
+            order, channel, fee_type, internal_type, total
         """
         return (
             OrderFee.objects.filter(
                 order__event_id__in=event_ids,
                 order__status__in=self.statuses,
+                **self._channel_filter(),
             )
             .values(
+                "order",
                 "order__sales_channel__identifier",
                 "fee_type",
                 "internal_type",
             )
             .annotate(total=Sum("value"))
-            .order_by("order__sales_channel__identifier", "fee_type")
+            .order_by("order", "fee_type")
         )
 
-    def _fill_fees(self, report: RecetteReport, fee_rows):
-        """Attach fee totals to channels and declare the dynamic fee columns.
+    def _order_session_weights(self, event_ids):
+        """Per-order gross split across sessions, used to attribute fees.
 
-        Fees are deposited on the channel's sessions. With a single session per
-        channel (common case) the whole channel fee lands on it. With several
-        sessions, the fee is put on the first session of the channel; finer
-        per-session attribution is handled in STORY-102.
+        Returns {order_id: {session_key: gross}} computed by a single aggregated
+        query (group by order + subevent). Lets us spread an order-level fee over
+        the sessions the order actually sold into, pro rata of gross.
         """
-        channels_by_key = {c.key: c for c in report.channels}
+        rows = (
+            OrderPosition.objects.filter(
+                order__event_id__in=event_ids,
+                order__status__in=self.statuses,
+                **self._channel_filter(),
+            )
+            .values("order", "subevent")
+            .annotate(gross=Sum("price"))
+        )
+        weights: Dict[int, Dict[str, Decimal]] = {}
+        for row in rows:
+            oid = row["order"]
+            se_key = str(row["subevent"]) if row["subevent"] else "event"
+            weights.setdefault(oid, {})[se_key] = row["gross"] or ZERO
+        return weights
+
+    def _fill_fees(self, report: RecetteReport, fee_rows, weights):
+        """Attach fee totals to the right sessions and declare fee columns.
+
+        Each order-level fee is attributed to the session(s) of that order.
+        Single-session order: the whole fee lands there. Multi-session order:
+        the fee is split pro rata of each session's gross; if the order has no
+        positive gross (e.g. only invitations), it is split evenly.
+        """
+        # Build a lookup: (channel_key, session_key) -> RecetteSession.
+        session_index = {}
+        for ch in report.channels:
+            for se in ch.sessions:
+                session_index[(ch.key, se.key)] = se
+
         columns: "OrderedDict[str, FeeColumn]" = OrderedDict()
 
         for row in fee_rows:
@@ -426,19 +514,56 @@ class RecetteDataBuilder:
             internal_type = row["internal_type"] or ""
             key = internal_type or fee_type or "fee"
             total = row["total"] or ZERO
+            order_id = row["order"]
 
             if key not in columns:
                 columns[key] = FeeColumn(key=key, label=fee_label(key, fee_type))
 
-            channel = channels_by_key.get(ch_key)
-            if channel is None or not channel.sessions:
-                # Fees on a channel that produced no paid position (edge case):
-                # skip rather than fabricate an empty section.
-                continue
-            session = channel.sessions[0]
-            session.fees[key] = session.fees.get(key, ZERO) + total
+            order_weights = weights.get(order_id, {})
+            self._deposit_fee(
+                session_index, ch_key, key, total, order_weights
+            )
 
         report.fee_columns = list(columns.values())
+
+    @staticmethod
+    def _deposit_fee(session_index, ch_key, key, total, order_weights):
+        """Add `total` for fee `key` to the order's session(s) in `ch_key`."""
+        # Sessions of this order that exist in the report for this channel.
+        present = {
+            se_key: gross
+            for se_key, gross in order_weights.items()
+            if (ch_key, se_key) in session_index
+        }
+        if not present:
+            return  # order produced no reported session (edge case): skip
+
+        base = sum(present.values(), ZERO)
+        keys = list(present.keys())
+        if base > ZERO:
+            acc = ZERO
+            for i, se_key in enumerate(keys):
+                if i == len(keys) - 1:
+                    share = total - acc  # last absorbs rounding
+                else:
+                    share = (total * present[se_key] / base).quantize(
+                        Decimal("0.01")
+                    )
+                    acc += share
+                se = session_index[(ch_key, se_key)]
+                se.fees[key] = se.fees.get(key, ZERO) + share
+        else:
+            # No positive gross (e.g. only invitations): split evenly.
+            n = len(keys)
+            acc = ZERO
+            for i, se_key in enumerate(keys):
+                if i == n - 1:
+                    share = total - acc
+                else:
+                    share = (total / n).quantize(Decimal("0.01"))
+                    acc += share
+                se = session_index[(ch_key, se_key)]
+                se.fees[key] = se.fees.get(key, ZERO) + share
 
     @staticmethod
     def _get_or_add_session(channel: RecetteChannel, key, label):
@@ -468,3 +593,21 @@ class RecetteDataBuilder:
         if value is None:
             return ""
         return str(value)
+
+    @classmethod
+    def _session_label(cls, name, date_from) -> str:
+        """Build a session label from a subevent name and start date.
+
+        Falls back to the event marker when there is no subevent. Format:
+        "Name (DD/MM/YYYY HH:MM)" when both are present, just the name or the
+        date otherwise.
+        """
+        name_str = cls._label(name)
+        if date_from is None and not name_str:
+            return str(_("Event"))
+        date_str = ""
+        if date_from is not None:
+            date_str = date_from.strftime("%d/%m/%Y %H:%M")
+        if name_str and date_str:
+            return f"{name_str} ({date_str})"
+        return name_str or date_str or str(_("Event"))

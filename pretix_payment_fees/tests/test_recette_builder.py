@@ -257,3 +257,129 @@ def test_reconcile_with_cache_returns_structure(event):
     if "mollie" in rec:
         assert rec["mollie"]["report"] == Decimal("1.50")
         assert "cache" in rec["mollie"] and "delta" in rec["mollie"]
+
+
+# -- STORY-102: channels, sessions, cross view --------------------------------
+
+
+@pytest.fixture
+def multi_event(db):
+    """Event with 2 subevents, 2 channels, fees on specific sessions.
+
+    Layout:
+        web / Session A: place 20.00 + Mollie fee 0.85
+        web / Session B: place 20.00 + service fee 2.00
+        guichet / Session A: place 14.00 + SumUp fee 0.30
+    """
+    from datetime import timedelta
+
+    from pretix.base.models import (
+        Event, Item, Order, OrderFee, OrderPosition, Organizer,
+        SalesChannel, SubEvent,
+    )
+
+    with scopes_disabled():
+        org = Organizer.objects.create(name="MOrg", slug="m-org")
+        # Only "web" is created with the organizer; add the box-office channel.
+        SalesChannel.objects.get_or_create(
+            organizer=org, identifier="api.guichet",
+            defaults={"label": "Guichet", "type": "api"},
+        )
+        ev = Event.objects.create(
+            organizer=org, name="Multi", slug="ev-multi",
+            date_from=now(), currency="EUR", has_subevents=True,
+        )
+        se_a = SubEvent.objects.create(
+            event=ev, name="Session A", date_from=now(), active=True
+        )
+        se_b = SubEvent.objects.create(
+            event=ev, name="Session B", date_from=now() + timedelta(days=1),
+            active=True,
+        )
+        place = Item.objects.create(
+            event=ev, name="Place", default_price=Decimal("20.00")
+        )
+        web = org.sales_channels.get(identifier="web")
+        guichet = org.sales_channels.get(identifier="api.guichet")
+
+        def order(code, channel, subevent, price, fees):
+            o = Order.objects.create(
+                code=code, event=ev, status=Order.STATUS_PAID,
+                datetime=now(), expires=now(), total=Decimal(price),
+                sales_channel=channel,
+            )
+            OrderPosition.objects.create(
+                order=o, item=place, price=Decimal(price), subevent=subevent
+            )
+            for ft, it, val in fees:
+                OrderFee.objects.create(
+                    order=o, fee_type=ft, internal_type=it, value=Decimal(val)
+                )
+
+        order("WA", web, se_a, "20.00",
+              [(OrderFee.FEE_TYPE_PAYMENT, "mollie_creditcard_fee", "0.85")])
+        order("WB", web, se_b, "20.00",
+              [(OrderFee.FEE_TYPE_SERVICE, "", "2.00")])
+        order("GA", guichet, se_a, "14.00",
+              [(OrderFee.FEE_TYPE_PAYMENT, "sumup_fee", "0.30")])
+    return ev
+
+
+def test_sessions_split_by_subevent(multi_event):
+    with scope(organizer=multi_event.organizer):
+        report = RecetteDataBuilder([multi_event]).build()
+    labels = {se.label for ch in report.channels for se in ch.sessions}
+    assert any("Session A" in label for label in labels)
+    assert any("Session B" in label for label in labels)
+
+
+def test_session_label_includes_date(multi_event):
+    with scope(organizer=multi_event.organizer):
+        report = RecetteDataBuilder([multi_event]).build()
+    for ch in report.channels:
+        for se in ch.sessions:
+            # "Name (DD/MM/YYYY HH:MM)"
+            assert "(" in se.label and "/" in se.label
+
+
+def test_fees_attributed_to_correct_session(multi_event):
+    """The service fee from a Session B order must not land on Session A."""
+    with scope(organizer=multi_event.organizer):
+        report = RecetteDataBuilder([multi_event]).build()
+    web = [c for c in report.channels if c.key == "web"][0]
+    sa = [s for s in web.sessions if "Session A" in s.label][0]
+    sb = [s for s in web.sessions if "Session B" in s.label][0]
+    assert sa.fees.get("mollie_creditcard_fee") == Decimal("0.85")
+    assert sb.fees.get("service") == Decimal("2.00")
+    assert "service" not in sa.fees
+
+
+def test_channel_filter_restricts_perimeter(multi_event):
+    with scope(organizer=multi_event.organizer):
+        full = RecetteDataBuilder([multi_event]).build()
+        web = RecetteDataBuilder([multi_event], {"channel": "web"}).build()
+        gui = RecetteDataBuilder(
+            [multi_event], {"channel": "api.guichet"}
+        ).build()
+    assert [c.key for c in web.channels] == ["web"]
+    assert [c.key for c in gui.channels] == ["api.guichet"]
+    # sum of filtered channels reconciles with the full report
+    assert web.gross + gui.gross == full.gross
+    assert web.fees_total + gui.fees_total == full.fees_total
+
+
+def test_cross_view_category_by_session(multi_event):
+    with scope(organizer=multi_event.organizer):
+        report = RecetteDataBuilder([multi_event]).build()
+    cv = report.cross_view()
+    assert len(cv.sessions) == 2
+    assert "Place" in cv.rows
+    total = cv.row_total("Place")
+    assert total["gross"] == report.gross  # 20 + 20 + 14 = 54
+
+
+def test_single_event_falls_back_to_event_session(event):
+    """An event without subevents yields a single 'Event' session."""
+    report = _build(event)
+    labels = {se.label for ch in report.channels for se in ch.sessions}
+    assert labels == {"Event"}

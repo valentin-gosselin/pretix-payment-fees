@@ -3,8 +3,8 @@
 **Epic:** Export comptable « Recette Manifestation »
 **Priority:** Must Have
 **Story Points:** 5
-**Status:** Not Started
-**Assigned To:** Unassigned
+**Status:** Done (implémenté, validé sur event de démo + non-régression, suite pytest verte 26/26)
+**Assigned To:** goss
 **Created:** 2026-06-22
 **Sprint:** Recette Manifestation, phase 2
 
@@ -44,13 +44,15 @@ Les frais PSP varient par canal (ex. 100 % du Mollie sur le web, 0 au guichet da
 
 ## Acceptance Criteria
 
-- [ ] Le builder produit une section par canal de vente présent dans le périmètre.
-- [ ] Une section TOTAL tous canaux est produite ; somme des canaux = TOTAL (réconciliation exacte).
-- [ ] Un filtre canal unique restreint correctement le périmètre.
-- [ ] Le regroupement par séance utilise `SubEvent` ; fallback événement unique si pas de sous-événements.
-- [ ] La vue croisée Catégorie x Séance est disponible dans la structure.
-- [ ] Les frais (STORY-101) sont ventilés correctement par canal et par séance.
-- [ ] Cas event mono-canal et mono-séance : un seul bloc, pas de section vide.
+- [x] Le builder produit une section par canal de vente présent dans le périmètre.
+- [x] Total tous canaux exposé via `report.gross`/`fees`/`net` ; somme des canaux = TOTAL (test `test_channel_filter_restricts_perimeter`).
+- [x] Un filtre canal unique (`form_data["channel"]`) restreint correctement le périmètre (positions + frais + weights).
+- [x] Le regroupement par séance utilise `SubEvent` ; fallback séance « Event » si pas de sous-événements (test `test_single_event_falls_back_to_event_session`).
+- [x] Label de séance = nom + date (`Name (DD/MM/YYYY HH:MM)`) via `_session_label()`.
+- [x] La vue croisée Catégorie x Séance est disponible (`report.cross_view()` -> `CrossView`).
+- [x] Les frais sont ventilés sur la **bonne séance** de la commande (au prorata du gross si commande multi-séances), corrigeant le placement temporaire de STORY-101 (tout sur `sessions[0]`).
+- [x] Cas mono-canal/mono-séance : un seul bloc, pas de section vide. Non-régression detonantes-2 OK (2 578 € / 26,93 €).
+- [x] Suite pytest verte : 26/26.
 
 ---
 
@@ -106,12 +108,22 @@ Données réelles de référence (pretix-dev, event detonantes-2) : 2 canaux (Bo
 
 ---
 
+## Implementation Notes
+
+- **Builder :** ajout `_channel_filter()`, `_session_label()`, `_order_session_weights()`, refonte `_aggregate_fees()`/`_fill_fees()`/`_deposit_fee()` (frais rattachés à la séance réelle de la commande, prorata gross si multi-séances, split égal si commande sans gross), `report.cross_view()` + dataclass `CrossView`, champ `channel` dans `__init__`.
+- **Frais multi-séances :** un OrderFee est au niveau commande ; on calcule la répartition gross par séance de chaque commande (`_order_session_weights`, 1 requête agrégée) et on ventile le frais au prorata. Corrige le placement provisoire de STORY-101.
+- **Données de test :** event de démo `demo/recette-demo` créé via `docs/seed_recette_demo.py` (2 séances x 2 canaux x variations x Mollie/SumUp/service x invitations). Sert de banc d'essai pour les renderers (STORY-104/105). Note : suppression à faire en SQL (le `.delete()` Django récursionne sur les events dans le shell).
+- **Validé :** démo (frais par séance corrects, filtre canal web/guichet réconcilié, vue croisée) + non-régression detonantes-2. pytest 26/26.
+
+---
+
 ## Progress Tracking
 
 **Status History:**
 - 2026-06-22 : Créée par goss.
+- 2026-06-22 : Implémentée. Séance=SubEvent, filtre canal, vue croisée, frais par séance corrigés. Event de démo créé. pytest 26/26. Statut Done.
 
-**Actual Effort:** TBD
+**Actual Effort:** ~5 points (conforme).
 
 ---
 
