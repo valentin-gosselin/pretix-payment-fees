@@ -3,7 +3,7 @@
 **Epic:** Export comptable « Recette Manifestation »
 **Priority:** Must Have (fondation de toute la feature)
 **Story Points:** 5
-**Status:** In Review (code implémenté, validé sur données réelles ; test pytest écrit, à exécuter en CI)
+**Status:** Done (code implémenté, validé sur données réelles, suite pytest verte 20/20)
 **Assigned To:** goss
 **Created:** 2026-06-22
 **Sprint:** Recette Manifestation, phase 1
@@ -56,7 +56,7 @@ La tech-spec impose une séparation builder/renderer : un service unique produit
 - [x] Total général cohérent (somme des sous-totaux = total). Vérifié : 2 578,00 € sur detonantes-2 (web 1919 + guichet 659).
 - [x] Les requêtes sont agrégées au niveau ORM (`values().annotate(Count, Sum)`), une seule requête, pas de boucle Python par commande.
 - [x] Cas limites gérés sans crash : event sans variation (nature « (default) », `is_single_line=True`), recette 0, liste d'events vide.
-- [~] Tests unitaires de réconciliation : fichier pytest écrit (`tests/test_recette_builder.py`) ; pytest absent de l'image runtime, donc validation équivalente effectuée par assertions via `pretix shell` sur données réelles (toutes passées). À exécuter en CI avec pytest-django.
+- [x] Tests unitaires de réconciliation : `tests/test_recette_builder.py` passe (pytest + pytest-django ajoutés aux deps dev du plugin ; suite complète 20/20 verte dans pretix-dev).
 
 ---
 

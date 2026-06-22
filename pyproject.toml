@@ -58,7 +58,14 @@ dependencies = [
 dev = [
     "black>=23.0.0",
     "isort>=5.12.0",
+    "pytest>=7.0.0",
+    "pytest-django>=4.5.0",
 ]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "pretix.testutils.settings"
+python_files = ["test_*.py"]
+testpaths = ["pretix_payment_fees/tests"]
 
 [project.urls]
 Homepage = "https://github.com/valentin-gosselin/pretix-payment-fees"

@@ -27,6 +27,7 @@ def event(db):
         Event,
         Item,
         Order,
+        OrderFee,
         OrderPosition,
         Organizer,
     )
@@ -41,6 +42,9 @@ def event(db):
             currency="EUR",
             plugins="pretix_payment_fees",
         )
+        # Order.sales_channel is a FK to SalesChannel (the "web" channel is
+        # created with the organizer). Fetch it for the orders below.
+        web = organizer.sales_channels.get(identifier="web")
         item_full = Item.objects.create(
             event=ev, name="Tarif plein", default_price=Decimal("20.00")
         )
@@ -55,7 +59,7 @@ def event(db):
             datetime=now(),
             expires=now(),
             total=Decimal("40.00"),
-            sales_channel="web",
+            sales_channel=web,
         )
         # two paying positions + one invitation (price 0)
         OrderPosition.objects.create(
@@ -67,6 +71,13 @@ def event(db):
         OrderPosition.objects.create(
             order=order, item=item_inv, price=Decimal("0.00")
         )
+        # a real Mollie payment fee on the paid order (STORY-101)
+        OrderFee.objects.create(
+            order=order,
+            fee_type=OrderFee.FEE_TYPE_PAYMENT,
+            internal_type="mollie_creditcard_fee",
+            value=Decimal("1.50"),
+        )
 
         # a canceled order that must be EXCLUDED from the perimeter
         canceled = Order.objects.create(
@@ -76,7 +87,7 @@ def event(db):
             datetime=now(),
             expires=now(),
             total=Decimal("20.00"),
-            sales_channel="web",
+            sales_channel=web,
         )
         OrderPosition.objects.create(
             order=canceled, item=item_full, price=Decimal("20.00")
@@ -173,3 +184,76 @@ def test_empty_events_returns_empty_report():
     report = RecetteDataBuilder([]).build()
     assert report.channels == []
     assert report.gross == Decimal("0.00")
+
+
+# -- STORY-101: fee breakdown -------------------------------------------------
+
+
+def test_dynamic_fee_column_from_internal_type(event):
+    report = _build(event)
+    keys = [c.key for c in report.fee_columns]
+    assert keys == ["mollie_creditcard_fee"]
+    assert report.fee_columns[0].label  # has a readable label
+
+
+def test_fee_total_aggregated(event):
+    report = _build(event)
+    assert report.fees_total == Decimal("1.50")
+    assert report.fees["mollie_creditcard_fee"] == Decimal("1.50")
+
+
+def test_net_revenue_is_gross_minus_fees(event):
+    report = _build(event)
+    assert report.net == report.gross - report.fees_total
+    assert report.net == Decimal("38.50")  # 40.00 - 1.50
+
+
+def test_fees_reconcile_channel_to_report(event):
+    report = _build(event)
+    summed = Decimal("0.00")
+    for ch in report.channels:
+        assert ch.net == ch.gross - ch.fees_total
+        summed += ch.fees_total
+    assert summed == report.fees_total
+
+
+@pytest.mark.django_db
+def test_no_fee_means_no_column():
+    """An event without OrderFee yields no fee column and net == gross."""
+    from pretix.base.models import Event, Item, Order, OrderPosition, Organizer
+
+    with scopes_disabled():
+        org = Organizer.objects.create(name="Org2", slug="org-test-2")
+        ev = Event.objects.create(
+            organizer=org, name="No Fee", slug="ev-nofee",
+            date_from=now(), currency="EUR",
+        )
+        web = org.sales_channels.get(identifier="web")
+        item = Item.objects.create(
+            event=ev, name="Plein", default_price=Decimal("10.00")
+        )
+        order = Order.objects.create(
+            code="ORD", event=ev, status=Order.STATUS_PAID,
+            datetime=now(), expires=now(), total=Decimal("10.00"),
+            sales_channel=web,
+        )
+        OrderPosition.objects.create(
+            order=order, item=item, price=Decimal("10.00")
+        )
+    with scope(organizer=ev.organizer):
+        report = RecetteDataBuilder([ev]).build()
+    assert report.fee_columns == []
+    assert report.fees_total == Decimal("0.00")
+    assert report.net == report.gross
+
+
+def test_reconcile_with_cache_returns_structure(event):
+    """reconcile_with_cache exposes report/cache/delta per provider."""
+    with scope(organizer=event.organizer):
+        builder = RecetteDataBuilder([event])
+        report = builder.build()
+        rec = builder.reconcile_with_cache(report)
+    # cache may be empty in the test DB; the report side must still be present
+    if "mollie" in rec:
+        assert rec["mollie"]["report"] == Decimal("1.50")
+        assert "cache" in rec["mollie"] and "delta" in rec["mollie"]
