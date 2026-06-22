@@ -3,8 +3,8 @@
 **Epic:** Export comptable « Recette Manifestation »
 **Priority:** Must Have
 **Story Points:** 3
-**Status:** Not Started
-**Assigned To:** Unassigned
+**Status:** Done (implémenté, CSV+Excel générés sur l'event de démo, réconciliation OK, pytest 43/43)
+**Assigned To:** goss
 **Created:** 2026-06-22
 **Sprint:** Recette Manifestation, phase 3
 
@@ -43,13 +43,14 @@ La même structure de builder doit produire CSV et Excel, avec des totaux strict
 
 ## Acceptance Criteria
 
-- [ ] Export CSV produit, en-têtes incluant les colonnes de frais dynamiques.
-- [ ] Export Excel (XLSX) produit avec les mêmes colonnes.
-- [ ] Les totaux CSV/Excel sont strictement identiques à ceux du PDF (même structure builder).
-- [ ] Encodage CSV UTF-8 (BOM si nécessaire pour Excel FR), séparateur cohérent, ré-importable sans corruption des accents.
-- [ ] Montants au format exploitable (nombre ou texte FR documenté) ; devise indiquée.
-- [ ] Découpage canal/séance reflété (colonnes ou feuilles selon le format).
-- [ ] Cas sans frais / sans séance multiple géré sans colonne fantôme.
+- [x] Export CSV produit, en-têtes incluant les colonnes de frais dynamiques (une par PSP).
+- [x] Export Excel (XLSX) produit avec les mêmes colonnes.
+- [x] Totaux CSV/Excel strictement identiques (même `flatten()`), et identiques au PDF (même builder). Vérifié par `test_csv_and_excel_totals_match`.
+- [x] CSV UTF-8 **avec BOM** (Excel FR), séparateur `;`, décimales FR (virgule), accents préservés.
+- [x] Montants exploitables : Excel = **nombres réels** (format cellule €) ; CSV = texte FR (virgule décimale).
+- [x] Découpage canal/séance reflété en colonnes (Canal de vente, Séance) + colonne `Type de ligne` (detail/subtotal/total/grand_total).
+- [x] Cas sans frais / report vide gérés sans colonne fantôme (`test_empty_report_renders_both`).
+- [x] Suite pytest verte : 43/43.
 
 ---
 
@@ -104,12 +105,25 @@ Parallélisable avec STORY-104 une fois le builder (100 à 103) terminé.
 
 ---
 
+## Implementation Notes
+
+- **Fichiers :** `renderers/recette_tabular.py` (aplatissement commun `flatten()` + `column_headers()`), `renderers/recette_csv_renderer.py`, `renderers/recette_excel_renderer.py`. Tests : `tests/test_recette_tabular_renderers.py` (8 tests).
+- **Source unique de vérité :** CSV et Excel sérialisent la MÊME sortie de `flatten(report)` -> totaux garantis identiques entre eux et avec le PDF (qui consomme le même builder).
+- **Format tabulaire :** une ligne par ligne de tableau (detail), + lignes subtotal/total/grand_total marquées par une colonne `Type de ligne`. Colonnes : Canal de vente, Séance, Produit, Nature, Taux de TVA, Quantité, Prix unitaire, Brut, <frais dynamiques>, Recette nette.
+- **CSV :** UTF-8 BOM, séparateur `;`, décimales virgule (Excel FR).
+- **Excel :** openpyxl, montants en nombres réels (format `# ##0.00 €`), en-tête + totaux stylés (indigo léger), colonne technique `Type de ligne` retirée du rendu, autosize, freeze de la 1ʳᵉ ligne.
+- **i18n :** libellés FR en constantes (comme STORY-104), gettext complet en STORY-106.
+- **Démo :** `docs/recette_demo.csv` + `docs/recette_demo.xlsx`. pytest 43/43.
+
+---
+
 ## Progress Tracking
 
 **Status History:**
 - 2026-06-22 : Créée par goss.
+- 2026-06-22 : Implémentée. CSV + Excel via aplatissement commun, réconciliation avec le PDF. pytest 43/43. Statut Done.
 
-**Actual Effort:** TBD
+**Actual Effort:** ~3 points (conforme).
 
 ---
 

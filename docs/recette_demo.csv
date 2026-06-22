@@ -1,0 +1,13 @@
+﻿Canal de vente;Séance;Produit;Nature;Taux de TVA;Quantité;Prix unitaire;Brut;Frais Mollie (CB);Frais de service;Frais SumUp;Recette nette;Type de ligne
+Online shop;Séance A (22/06/2026 13:37);Place;Plein;2,10 %;2;20,00;40,00;;;;40,00;detail
+Online shop;Séance A (22/06/2026 13:37);Place;Réduit;2,10 %;1;14,00;14,00;;;;14,00;detail
+Online shop;Séance A (22/06/2026 13:37);Place;;2,10 %;3;;54,00;;;;54,00;subtotal
+Online shop;Séance A (22/06/2026 13:37);;;2,10 %;3;;54,00;1,35;0,00;0,00;52,65;total
+Online shop;Séance B (23/06/2026 13:37);Place;Plein;2,10 %;2;20,00;40,00;;;;40,00;detail
+Online shop;Séance B (23/06/2026 13:37);;;2,10 %;2;;40,00;1,00;2,00;0,00;37,00;total
+Guichet;Séance A (22/06/2026 13:37);Invitation;(default);2,10 %;1;0,00;0,00;;;;0,00;detail
+Guichet;Séance A (22/06/2026 13:37);Place;Réduit;2,10 %;1;14,00;14,00;;;;14,00;detail
+Guichet;Séance A (22/06/2026 13:37);;;2,10 %;2;;14,00;0,00;0,00;0,30;13,70;total
+Guichet;Séance B (23/06/2026 13:37);Invitation;(default);2,10 %;1;0,00;0,00;;;;0,00;detail
+Guichet;Séance B (23/06/2026 13:37);;;2,10 %;1;;0,00;0,00;0,00;0,00;0,00;total
+;;;;;8;;108,00;2,35;2,00;0,30;103,35;grand_total
