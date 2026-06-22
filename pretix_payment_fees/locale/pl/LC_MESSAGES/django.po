@@ -1129,3 +1129,59 @@ msgstr "Opłacone"
 
 msgid "Pending"
 msgstr "Oczekujące"
+
+# --- Exports complémentaires (auto) ---
+
+msgid "Détail par commande"
+msgstr "Szczegóły zamówień"
+
+msgid "Remplissage de salle"
+msgstr "Zapełnienie sali"
+
+msgid "Commande"
+msgstr "Zamówienie"
+
+msgid "Commandes"
+msgstr "Zamówienia"
+
+msgid "commandes"
+msgstr "zamówień"
+
+msgid "Places"
+msgstr "Miejsca"
+
+msgid "places vendues"
+msgstr "sprzedanych miejsc"
+
+msgid "Catégorie"
+msgstr "Kategoria"
+
+msgid "Catégories"
+msgstr "Kategorie"
+
+msgid "Montant"
+msgstr "Kwota"
+
+msgid "Net"
+msgstr "Netto"
+
+msgid "Quota"
+msgstr "Limit"
+
+msgid "Vendu"
+msgstr "Sprzedane"
+
+msgid "Capacité"
+msgstr "Pojemność"
+
+msgid "Remplissage"
+msgstr "Zapełnienie"
+
+msgid "Taux de remplissage"
+msgstr "Stopień zapełnienia"
+
+msgid "Ventes par catégorie"
+msgstr "Sprzedaż wg kategorii"
+
+msgid "Laisser vide pour inclure tous les canaux."
+msgstr "Pozostaw puste, aby uwzględnić wszystkie kanały."

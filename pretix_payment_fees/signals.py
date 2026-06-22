@@ -32,6 +32,36 @@ def register_recette_manifestation_multi(sender, **kwargs):
     return RecetteManifestationExporter
 
 
+@receiver(register_data_exporters, dispatch_uid="order_detail_psp")
+def register_order_detail(sender, **kwargs):
+    from .exporters.order_detail import OrderDetailExporter
+
+    return OrderDetailExporter
+
+
+@receiver(register_multievent_data_exporters,
+          dispatch_uid="order_detail_psp_multi")
+def register_order_detail_multi(sender, **kwargs):
+    from .exporters.order_detail import OrderDetailExporter
+
+    return OrderDetailExporter
+
+
+@receiver(register_data_exporters, dispatch_uid="remplissage_salle")
+def register_remplissage_salle(sender, **kwargs):
+    from .exporters.remplissage_salle import RemplissageSalleExporter
+
+    return RemplissageSalleExporter
+
+
+@receiver(register_multievent_data_exporters,
+          dispatch_uid="remplissage_salle_multi")
+def register_remplissage_salle_multi(sender, **kwargs):
+    from .exporters.remplissage_salle import RemplissageSalleExporter
+
+    return RemplissageSalleExporter
+
+
 @receiver(nav_organizer, dispatch_uid="payment_fees_nav_organizer")
 def navbar_organizer(sender, request, organizer, **kwargs):
     """Ajoute un lien dans les paramètres de l'organisateur pour la gestion des frais bancaires."""

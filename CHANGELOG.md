@@ -7,9 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned
-- Order-level detail export (one row per order with categories and fee detail)
-- Venue-occupancy export for partners (ticket counts per category, no amounts)
+## [1.2.0] - 2026-06-23
+
+### Added
+- **New export "Détail par commande"** (order detail): one row per product line,
+  grouped by order (order code/date/channel shown once, a clear divider between
+  orders). Includes ticket count, purchased products, amount and the real PSP
+  fees per provider, split across the order's product lines pro rata of gross.
+  No personal data (no email/name, GDPR). Order date shown with time in the
+  event timezone for PSP reconciliation. PDF (landscape) / CSV / Excel.
+- **New export "Remplissage de salle"** (venue occupancy) for partners: ticket
+  counts per category (paid / invitations / total) and a fill-rate block per
+  Pretix quota (sold / capacity / %). No monetary value. PDF / CSV / Excel.
+- i18n of both new exports in the 8 plugin languages.
+
+### Changed
+- "Recettes détaillées": **free-price products now produce one line per distinct
+  amount** with the exact unit price (no longer averaged), matching the native
+  Pretix accounting export.
+- Tables are left-anchored and span the page width; the "(default)" nature label
+  is hidden for products without a real variation.
+
+### Fixed
+- Category subtotals now carry their fees and net revenue (were shown as 0.00
+  for multi-line categories).
 
 ## [1.1.1] - 2026-06-22
 

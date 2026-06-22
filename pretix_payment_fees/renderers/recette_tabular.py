@@ -13,6 +13,14 @@ from decimal import Decimal
 
 from django.utils.translation import gettext_lazy as _
 
+from ..services.recette_builder import DEFAULT_NATURE
+
+
+def _nature(line):
+    """Display nature, blank for the default (no real variation)."""
+    n = line.nature
+    return "" if not n or n == str(DEFAULT_NATURE) else n
+
 # Column labels translated via gettext_lazy (source strings in French, resolved
 # to the user's language at export time). Translations live in the .po files.
 COLS = {
@@ -60,8 +68,12 @@ def flatten(report):
     apply at that aggregation level.
     """
     rows = []
-    nfee = len(report.fee_columns)
-    blank_fees = [None] * nfee
+
+    def line_fees(line):
+        return [line.fees.get(c.key, ZERO) for c in report.fee_columns]
+
+    def cat_fee_values(cat):
+        return [cat.fees.get(c.key, ZERO) for c in report.fee_columns]
 
     for ch in report.channels:
         for se in ch.sessions:
@@ -70,21 +82,21 @@ def flatten(report):
                 if cat.is_single_line:
                     line = cat.lines[0]
                     rows.append([
-                        ch.label, se.label, cat.name, line.nature, vat,
+                        ch.label, se.label, cat.name, _nature(line), vat,
                         line.count, line.unit_price, line.gross,
-                        *blank_fees, line.gross, KIND_DETAIL,
+                        *line_fees(line), line.net, KIND_DETAIL,
                     ])
                 else:
                     for line in cat.lines:
                         rows.append([
-                            ch.label, se.label, cat.name, line.nature, vat,
+                            ch.label, se.label, cat.name, _nature(line), vat,
                             line.count, line.unit_price, line.gross,
-                            *blank_fees, line.gross, KIND_DETAIL,
+                            *line_fees(line), line.net, KIND_DETAIL,
                         ])
                     rows.append([
                         ch.label, se.label, cat.name, "", vat,
                         cat.count, None, cat.gross,
-                        *blank_fees, cat.gross, KIND_SUBTOTAL,
+                        *cat_fee_values(cat), cat.net, KIND_SUBTOTAL,
                     ])
             # session total (carries the fee breakdown)
             rows.append([

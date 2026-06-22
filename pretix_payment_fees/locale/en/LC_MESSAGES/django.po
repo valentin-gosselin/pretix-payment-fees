@@ -955,3 +955,56 @@ msgstr "Paid"
 
 msgid "Pending"
 msgstr "Pending"
+
+# --- Exports complémentaires (auto) ---
+
+msgid "Détail par commande"
+msgstr "Order details"
+
+msgid "Remplissage de salle"
+msgstr "Venue occupancy"
+
+msgid "Commande"
+msgstr "Order"
+
+msgid "Commandes"
+msgstr "Orders"
+
+msgid "commandes"
+msgstr "orders"
+
+msgid "Places"
+msgstr "Tickets"
+
+msgid "places vendues"
+msgstr "tickets sold"
+
+msgid "Catégorie"
+msgstr "Category"
+
+msgid "Catégories"
+msgstr "Categories"
+
+msgid "Montant"
+msgstr "Amount"
+
+msgid "Quota"
+msgstr "Quota"
+
+msgid "Vendu"
+msgstr "Sold"
+
+msgid "Capacité"
+msgstr "Capacity"
+
+msgid "Remplissage"
+msgstr "Fill rate"
+
+msgid "Taux de remplissage"
+msgstr "Fill rate"
+
+msgid "Ventes par catégorie"
+msgstr "Sales by category"
+
+msgid "Laisser vide pour inclure tous les canaux."
+msgstr "Leave empty to include all channels."

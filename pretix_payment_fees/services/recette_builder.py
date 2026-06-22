@@ -121,10 +121,15 @@ class RecetteLine:
     paid_count: int = 0                 # positions with price > 0
     free_count: int = 0                 # positions with price == 0 (invitations)
     tax_rate: Decimal = ZERO            # VAT rate of the line (frozen tax_rate)
+    fixed_unit_price: Optional[Decimal] = None  # set for free-price lines
+    group_key: Optional[str] = None     # custom merge key (free-price lines)
 
     @property
     def unit_price(self) -> Decimal:
-        """Average unit price for the row (gross / count), 0 if no count."""
+        """Unit price: the pinned amount for free-price lines, else the average
+        (gross / count)."""
+        if self.fixed_unit_price is not None:
+            return self.fixed_unit_price
         if not self.count:
             return ZERO
         return (self.gross / self.count).quantize(Decimal("0.01"))
@@ -162,6 +167,19 @@ class RecetteCategory:
     def free_count(self) -> int:
         """Invitations (price 0) count for the category."""
         return sum(line.free_count for line in self.lines)
+
+    @property
+    def fees(self) -> Dict[str, Decimal]:
+        """Fees of the category = sum of its lines' allocated fees."""
+        return _sum_fee_dicts(line.fees for line in self.lines)
+
+    @property
+    def fees_total(self) -> Decimal:
+        return sum(self.fees.values(), ZERO)
+
+    @property
+    def net(self) -> Decimal:
+        return self.gross - self.fees_total
 
     @property
     def is_single_line(self) -> bool:
@@ -508,9 +526,14 @@ class RecetteDataBuilder:
                 "subevent__date_from",
                 "item",
                 "item__name",
+                "item__free_price",
                 "variation",
                 "variation__value",
                 "tax_rate",
+                # group by price too: free-price products get one line per
+                # distinct amount (accounting requirement). Fixed-price products
+                # are re-merged downstream (their price is constant per line).
+                "price",
             )
             .annotate(
                 count=Count("id"),
@@ -523,6 +546,7 @@ class RecetteDataBuilder:
                 "subevent",
                 "item__name",
                 "variation__value",
+                "price",
             )
         )
         return qs
@@ -542,6 +566,8 @@ class RecetteDataBuilder:
             cat_name = self._label(row["item__name"]) or str(_("Product"))
             nature = self._label(row["variation__value"]) or str(DEFAULT_NATURE)
             tax_rate = row["tax_rate"] or ZERO
+            price = row["price"] or ZERO
+            free_price = bool(row["item__free_price"])
 
             channel = channels.setdefault(
                 ch_key, RecetteChannel(key=ch_key, label=ch_label)
@@ -549,10 +575,18 @@ class RecetteDataBuilder:
             session = self._get_or_add_session(channel, se_key, se_label)
             session.tax_rates.add(tax_rate)
             category = self._get_or_add_category(session, cat_name)
-            # Merge into an existing (category, nature) line: tax_rate is part of
-            # the group-by, so a product taxed at two rates would otherwise yield
-            # two rows. We sum the measures and keep the rates on the session.
-            line = self._get_or_add_line(category, cat_name, nature)
+            # For free-price products, each distinct amount is its own line, so
+            # the unit price shown is the real amount (not an average). We key
+            # such lines by (nature, price) and pin the unit price. Fixed-price
+            # products keep merging by (category, nature).
+            if free_price:
+                line_key = f"{nature} @{price}"
+                line = self._get_or_add_line(
+                    category, cat_name, nature, key=line_key,
+                    fixed_unit_price=price,
+                )
+            else:
+                line = self._get_or_add_line(category, cat_name, nature)
             line.count += row["count"] or 0
             line.gross += row["gross"] or ZERO
             line.paid_count += row["paid_count"] or 0
@@ -702,11 +736,18 @@ class RecetteDataBuilder:
         return c
 
     @staticmethod
-    def _get_or_add_line(category: RecetteCategory, cat_name, nature):
+    def _get_or_add_line(category: RecetteCategory, cat_name, nature,
+                         key=None, fixed_unit_price=None):
+        """Find or create a line. `key` (when given, e.g. for free-price lines)
+        is the merge key so several distinct amounts stay on separate lines."""
         for line in category.lines:
-            if line.nature == nature:
+            if key is not None:
+                if line.group_key == key:
+                    return line
+            elif line.group_key is None and line.nature == nature:
                 return line
-        line = RecetteLine(category=cat_name, nature=nature)
+        line = RecetteLine(category=cat_name, nature=nature,
+                           group_key=key, fixed_unit_price=fixed_unit_price)
         category.lines.append(line)
         return line
 

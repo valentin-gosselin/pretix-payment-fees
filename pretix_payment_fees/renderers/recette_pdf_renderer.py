@@ -20,6 +20,8 @@ from decimal import Decimal
 
 from django.utils.translation import gettext_lazy as _
 
+from ..services.recette_builder import DEFAULT_NATURE
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -102,6 +104,8 @@ COL_HEAD = colors.HexColor("#8A8F98")      # grey for the uppercase col headers
 RULE = colors.HexColor("#EDEEF1")          # very light rule between rows
 RULE_ACCENT = ACCENT                       # thin indigo rule under headers
 SUBTOTAL_TXT = colors.HexColor("#374151")  # subtotal label (slate)
+SUBTOTAL_BG = colors.HexColor("#F3F4F6")   # light grey fill to set subtotals off
+SUBTOTAL_RULE = colors.HexColor("#C7CBD1")  # rule above a subtotal
 
 
 def doc_width():
@@ -271,10 +275,16 @@ class RecettePDFRenderer:
                 line = cat.lines[0]
                 data.append([cat.name] + self._line_cells(line)[1:])
             else:
-                # several natures: one row per nature ("Category / Nature"),
-                # followed by a category subtotal
+                # several lines: one row per nature ("Category / Nature"),
+                # followed by a category subtotal. The "(default)" nature (a
+                # product without a real variation, e.g. free-price products
+                # split by amount) is not shown: only the category name.
+                default_nature = str(DEFAULT_NATURE)
                 for line in cat.lines:
-                    label = f"{cat.name} / {line.nature}"
+                    if line.nature and line.nature != default_nature:
+                        label = f"{cat.name} / {line.nature}"
+                    else:
+                        label = cat.name
                     data.append([label] + self._line_cells(line)[1:])
                 data.append(self._subtotal_row(cat))
                 subtotal_rows.append(len(data) - 1)
@@ -289,10 +299,10 @@ class RecettePDFRenderer:
         return t
 
     def _subtotal_row(self, cat):
-        fee_cells = [euro(cat_fees(cat).get(c.key, ZERO))
+        fee_cells = [euro(cat.fees.get(c.key, ZERO))
                      for c in self.report.fee_columns]
         return ([cat.name, str(cat.count), "", euro(cat.gross)]
-                + fee_cells + [euro(cat.gross)])
+                + fee_cells + [euro(cat.net)])
 
     def _session_total_row(self, se):
         fee_cells = [euro(se.fees.get(c.key, ZERO))
@@ -335,10 +345,15 @@ class RecettePDFRenderer:
             # light rule between body rows only
             ("LINEBELOW", (0, 1), (-1, -2), 0.5, RULE),
         ]
-        # subtotal rows: slate bold label, no fill
+        # subtotal rows: bold slate label on a light grey fill, with a thin
+        # rule above, so they clearly read as a recap and not a detail line
         for r in subtotal_rows:
             style.append(("FONTNAME", (0, r), (-1, r), _FONT_BD))
             style.append(("TEXTCOLOR", (0, r), (-1, r), SUBTOTAL_TXT))
+            style.append(("BACKGROUND", (0, r), (-1, r), SUBTOTAL_BG))
+            style.append(("LINEABOVE", (0, r), (-1, r), 0.6, SUBTOTAL_RULE))
+            # drop the light inter-row rule just above (the stronger rule wins)
+            style.append(("LINEBELOW", (0, r - 1), (-1, r - 1), 0, colors.white))
         # total row: strong rule above, indigo bold text, no fill
         if total_row is not None:
             style.append(("FONTNAME", (0, total_row), (-1, total_row),
@@ -409,12 +424,3 @@ class RecettePDFRenderer:
         t.setStyle(TableStyle(self._modern_table_style(data, total_row=last)))
         return [Paragraph(L["ticketing"], s["h2"]),
                 Spacer(0, 1.5 * mm), t, Spacer(0, 6 * mm)]
-
-
-def cat_fees(cat):
-    """Fees do not live on categories (they are order-level). Empty by design.
-
-    Subtotal fee cells are blank because fees are attributed at the session
-    level, not per category. Returning an empty dict keeps the column aligned.
-    """
-    return {}

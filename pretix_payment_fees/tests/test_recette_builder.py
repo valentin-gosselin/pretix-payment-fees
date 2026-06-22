@@ -492,3 +492,74 @@ def test_vat_zero_rate_display(event):
         for se in ch.sessions:
             # fixture positions have no tax_rule -> tax_rate 0
             assert se.tax_is_uniform
+
+
+# -- free-price products: one line per distinct amount ------------------------
+
+
+@pytest.fixture
+def free_price_event(db):
+    """Event with a free-price product sold at several distinct amounts."""
+    from pretix.base.models import (
+        Event, Item, Order, OrderPosition, Organizer,
+    )
+
+    with scopes_disabled():
+        org = Organizer.objects.create(name="FP", slug="fp-org")
+        ev = Event.objects.create(
+            organizer=org, name="FP Event", slug="ev-fp",
+            date_from=now(), currency="EUR",
+        )
+        libre = Item.objects.create(
+            event=ev, name="Prix libre", default_price=Decimal("0.00"),
+            free_price=True,
+        )
+        fixe = Item.objects.create(
+            event=ev, name="Tarif plein", default_price=Decimal("20.00"),
+        )
+        web = org.sales_channels.get(identifier="web")
+        o = Order.objects.create(
+            code="FP1", event=ev, status=Order.STATUS_PAID,
+            datetime=now(), expires=now(), total=Decimal("0.00"),
+            sales_channel=web,
+        )
+        # free price at 8 (x2), 10 (x1); fixed price 20 (x2)
+        for p, n in [(Decimal("8.00"), 2), (Decimal("10.00"), 1)]:
+            for _i in range(n):
+                OrderPosition.objects.create(order=o, item=libre, price=p)
+        for _i in range(2):
+            OrderPosition.objects.create(order=o, item=fixe, price=Decimal("20"))
+    return ev
+
+
+def test_free_price_one_line_per_amount(free_price_event):
+    with scope(organizer=free_price_event.organizer):
+        report = RecetteDataBuilder([free_price_event]).build()
+    cats = {
+        cat.name: cat
+        for ch in report.channels for se in ch.sessions
+        for cat in se.categories
+    }
+    libre = cats["Prix libre"]
+    prices = sorted(ln.unit_price for ln in libre.lines)
+    assert prices == [Decimal("8.00"), Decimal("10.00")]
+    by_price = {ln.unit_price: ln for ln in libre.lines}
+    assert by_price[Decimal("8.00")].count == 2
+    assert by_price[Decimal("8.00")].gross == Decimal("16.00")
+    assert by_price[Decimal("10.00")].count == 1
+
+
+def test_fixed_price_stays_single_line(free_price_event):
+    """A fixed-price product is not split by price."""
+    with scope(organizer=free_price_event.organizer):
+        report = RecetteDataBuilder([free_price_event]).build()
+    cats = {
+        cat.name: cat
+        for ch in report.channels for se in ch.sessions
+        for cat in se.categories
+    }
+    plein = cats["Tarif plein"]
+    assert len(plein.lines) == 1
+    assert plein.lines[0].count == 2
+    # fixed price: unit price is the average (= the price), not pinned
+    assert plein.lines[0].unit_price == Decimal("20.00")

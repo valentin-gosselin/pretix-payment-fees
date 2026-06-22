@@ -1129,3 +1129,59 @@ msgstr "Betaald"
 
 msgid "Pending"
 msgstr "In afwachting"
+
+# --- Exports complémentaires (auto) ---
+
+msgid "Détail par commande"
+msgstr "Bestelgegevens"
+
+msgid "Remplissage de salle"
+msgstr "Zaalbezetting"
+
+msgid "Commande"
+msgstr "Bestelling"
+
+msgid "Commandes"
+msgstr "Bestellingen"
+
+msgid "commandes"
+msgstr "bestellingen"
+
+msgid "Places"
+msgstr "Plaatsen"
+
+msgid "places vendues"
+msgstr "verkochte plaatsen"
+
+msgid "Catégorie"
+msgstr "Categorie"
+
+msgid "Catégories"
+msgstr "Categorieën"
+
+msgid "Montant"
+msgstr "Bedrag"
+
+msgid "Net"
+msgstr "Netto"
+
+msgid "Quota"
+msgstr "Quotum"
+
+msgid "Vendu"
+msgstr "Verkocht"
+
+msgid "Capacité"
+msgstr "Capaciteit"
+
+msgid "Remplissage"
+msgstr "Bezetting"
+
+msgid "Taux de remplissage"
+msgstr "Bezettingsgraad"
+
+msgid "Ventes par catégorie"
+msgstr "Verkoop per categorie"
+
+msgid "Laisser vide pour inclure tous les canaux."
+msgstr "Leeg laten om alle kanalen op te nemen."
