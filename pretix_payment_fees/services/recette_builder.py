@@ -50,22 +50,24 @@ ZERO = Decimal("0.00")
 # Human-readable labels for known PSP internal_types (frozen in STORY-000).
 # Unknown types fall back to a humanized label (see fee_label()).
 PSP_LABELS = {
-    "mollie_creditcard_fee": _("Mollie fee (card)"),
-    "mollie_ideal_fee": _("Mollie fee (iDEAL)"),
-    "mollie_bancontact_fee": _("Mollie fee (Bancontact)"),
-    "sumup_fee": _("SumUp fee"),
+    # Source strings in French (Pretix FR vocabulary, frozen STORY-000). They
+    # stay gettext_lazy so STORY-106 can translate them to the other languages.
+    "mollie_creditcard_fee": _("Frais Mollie (CB)"),
+    "mollie_ideal_fee": _("Frais Mollie (iDEAL)"),
+    "mollie_bancontact_fee": _("Frais Mollie (Bancontact)"),
+    "sumup_fee": _("Frais SumUp"),
 }
 
 # Labels for native OrderFee.fee_type values used when internal_type is empty.
 FEE_TYPE_LABELS = {
-    OrderFee.FEE_TYPE_PAYMENT: _("Payment fee"),
-    OrderFee.FEE_TYPE_SERVICE: _("Service fee"),
-    OrderFee.FEE_TYPE_SHIPPING: _("Shipping fee"),
-    OrderFee.FEE_TYPE_CANCELLATION: _("Cancellation fee"),
-    OrderFee.FEE_TYPE_INSURANCE: _("Insurance fee"),
-    OrderFee.FEE_TYPE_LATE: _("Late fee"),
-    OrderFee.FEE_TYPE_OTHER: _("Other fees"),
-    OrderFee.FEE_TYPE_GIFTCARD: _("Gift card"),
+    OrderFee.FEE_TYPE_PAYMENT: _("Frais de paiement"),
+    OrderFee.FEE_TYPE_SERVICE: _("Frais de service"),
+    OrderFee.FEE_TYPE_SHIPPING: _("Frais de livraison"),
+    OrderFee.FEE_TYPE_CANCELLATION: _("Frais d'annulation"),
+    OrderFee.FEE_TYPE_INSURANCE: _("Frais d'assurance"),
+    OrderFee.FEE_TYPE_LATE: _("Frais de retard"),
+    OrderFee.FEE_TYPE_OTHER: _("Autres frais"),
+    OrderFee.FEE_TYPE_GIFTCARD: _("Carte cadeau"),
 }
 
 
@@ -87,7 +89,7 @@ def fee_label(key: str, fee_type: str = "") -> str:
     if key in FEE_TYPE_LABELS:
         return str(FEE_TYPE_LABELS[key])
     base = key.replace("_fee", "").replace("_", " ").strip()
-    return (base.title() + " " + str(_("fee"))).strip()
+    return (str(_("Frais")) + " " + base.title()).strip()
 
 
 @dataclass

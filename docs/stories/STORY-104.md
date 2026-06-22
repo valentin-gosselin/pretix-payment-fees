@@ -3,8 +3,8 @@
 **Epic:** Export comptable « Recette Manifestation »
 **Priority:** Must Have
 **Story Points:** 5
-**Status:** Not Started
-**Assigned To:** Unassigned
+**Status:** In Review (implémenté, PDF généré sur l'event de démo et validé visuellement ; pytest 35/35)
+**Assigned To:** goss
 **Created:** 2026-06-22
 **Sprint:** Recette Manifestation, phase 3
 
@@ -111,12 +111,30 @@ Référence visuelle : `docs/mock_recette_manifestation.pdf`. Le générateur mo
 
 ---
 
+## Implementation Notes
+
+- **Fichier :** `renderers/recette_pdf_renderer.py` (ReportLab, `RecettePDFRenderer.render() -> bytes`). Tests : `tests/test_recette_pdf_renderer.py` (5 tests).
+- **Layout figé STORY-000 respecté :** A4 portrait, OpenSans embarqué (accents), largeurs dynamiques (`_auto_widths`), devises €, sections par canal/séance + total, vue croisée, billetterie, en-tête riche.
+- **Design (retours goss) :** style **sobre éditorial** (Qonto/Pennylane), accent indigo (`#4F46E5`) utilisé uniquement en accent. Titre indigo sur fond blanc + filet indigo (pas de bandeau plein, jugé criard). En-têtes de colonnes sans aplat : gris discret + filet indigo dessous. Pas de zebra : fins filets clairs entre lignes. Totaux sans fond : filet indigo au-dessus + texte indigo gras. Beaucoup de blanc, hiérarchie par typo/espacement. Méthode `_modern_table_style()`. Le contenu est identique, seule la présentation change.
+- **Natures :** « Catégorie / Nature » quand plusieurs variations (ex. « Place / Plein »), sinon le nom de catégorie seul ; sous-total par catégorie quand multi-natures.
+- **i18n :** libellés en français via un dict `L` (constantes) plutôt que gettext, car les .po ne sont pas encore traduits. Les libellés de colonnes de frais (builder) passés en français source (gardés `gettext_lazy` pour STORY-106). L'i18n complète 8 langues sera câblée en STORY-106.
+- **Le renderer ne recalcule rien** : il sérialise la structure du builder (garantit l'égalité des totaux avec CSV/Excel).
+- **PDF de démo :** `docs/recette_demo.pdf` (event `demo/recette-demo`), validé visuellement (2 canaux, 2 séances, 3 colonnes de frais, variations, invitations, TVA, billetterie).
+- pytest 35/35.
+
+### Reste pour STORY-106
+- Câbler l'i18n gettext (remplacer le dict `L` par des `_()` une fois les .po traduits) pour les 8 langues.
+- Passer le `event_meta` réel depuis l'exporter (organisateur/événement/lieu/date).
+
+---
+
 ## Progress Tracking
 
 **Status History:**
 - 2026-06-22 : Créée par goss.
+- 2026-06-22 : Implémentée. Renderer ReportLab consommant le builder, PDF généré et validé visuellement sur l'event de démo. pytest 35/35. Statut In Review (validation visuelle goss).
 
-**Actual Effort:** TBD
+**Actual Effort:** ~5 points (conforme).
 
 ---
 
